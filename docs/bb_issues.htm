@@ -1,0 +1,167 @@
+<html>
+<head>
+<title>brainbugz Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>&nbsp;additional 
+      informations</font></td>
+  </tr>
+</table>
+
+  
+<br>
+&nbsp; 
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>&nbsp;</font><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF">known 
+        issues and limitations</font></td>
+    </tr>
+  </table>
+<p>- not complete nurbsSurfaces area is used for target destribution<br>
+  - multiple knot targets with same position<br>
+</p>
+<p>If you find a bug, please report to <a href="mailto:carsten@kolve.com">carsten@kolve.com</a></p>
+
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="futu"></a>&nbsp;future 
+        enhancements </font></td>
+    </tr>
+  </table>
+<p>all these depend on time, feedback and motivation :)<br>
+  <br>
+  - new steering desires: formation, containment<br>
+  - new combine mode: priorized dithering<br>
+  - node to constrain bug motion to different physical parameters (surface hugging, 
+  flight etc.)<br>
+  - performance: eliminate unnessecary computations (you'd be shocked if you knew 
+  how much there are!), spatial data structure to speed up query of nearby bugs, 
+  node to store reusable computational data to speed up calculations<br>
+  - event / location based steering desire changes (already possible to a certain 
+  degree, extend that degree)<br>
+  - inner states for bugs (fear, hunger, anger etc.)<br>
+  - integration of non-linear trax animation with beavioural animation engine 
+  <br>
+  - kill all bugs, kill 'em all!<br>
+  - faster, better, harder, stronger</p>
+<p>Suggestions, ideas? &gt; <a href="mailto:carsten@kolve.com">carsten@kolve.com</a></p>
+
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="ackn"></a>&nbsp;acknowlegements</font></td>
+    </tr>
+  </table>
+<p>Big Thanks to all the beta-testers: Bruno Pollet, Stefaan Contreras (A|W Europe), 
+  Max Parofsky (Hidden Dragon Films, L.A.), Thomas Hermann (Second Unit, Munich), 
+  Karen Smith (Freelance)</p>
+
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="refe"></a>&nbsp;references</font></td>
+    </tr>
+  </table>
+  
+<br>
+&nbsp; 
+<table width="96%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr> 
+      <td>Reynolds, C. W. (1987) Flocks, Herds, and Schools: A Distributed Behavioral 
+        Model, in Computer Graphics, 21(4) (SIGGRAPH &#146;87 Conference Proceedings) 
+        pages 25-34. </td>
+    </tr>
+    <tr> 
+      <td>Reynolds, C. W. (1988) Not Bumping Into Things, in the notes for the 
+        SIGGRAPH 88 course Developments in Physically-Based Modeling, pages G1-G13, 
+        published by ACM SIGGRAPH. </td>
+    </tr>
+    <tr> 
+      <td>Reynolds C.W., &quot;Steering Behaviours for Autonomous Characters&quot;, 
+        Proceedings of the Games Developer Conference, p763-782, 1999.</td>
+    </tr>
+    <tr> 
+      <td>Robin Green &quot;Steering Behaviours&quot;, Proceedings of the Games 
+        Developer Conference 1999</td>
+    </tr>
+    <tr> 
+      <td>David M. Bourg, &quot;Physics for Game Developers&quot;, O'REILLY, 2002, 
+        ISBN 0-596-00006-5</td>
+    </tr>
+    <tr> 
+      <td>Alan Watt, &quot;3D Computer Graphics&quot;, Pearson Education Limited, 
+        1999 (German Edition), ISBN 3-8273-7014-0</td>
+    </tr>
+    <tr> 
+      <td>Rick Parent, &quot;Computer Animation - Algorithms and Techniques&quot;, 
+        Morgan Kaufmann Publishers, 2002, ISBN 1-55860-579-7</td>
+    </tr>
+  </table>
+<p>&nbsp;</p>
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="hist"></a>&nbsp;history</font></td>
+    </tr>
+  </table>
+  
+<br>
+&nbsp; 
+<table width="96%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666" height="348">
+  <tr bgcolor="#FFFFCC" valign="top"> 
+    <td width="11%"><b>Version</b></td>
+    <td width="12%"><b>Date</b></td>
+    <td width="77%"><b>Info</b></td>
+  </tr>
+  <tr valign="top"> 
+    <td width="11%">Beta 1</td>
+    <td width="12%">19.02.02</td>
+    <td width="77%">intial non public beta release</td>
+  </tr>
+  <tr valign="top"> 
+    <td width="11%" height="112">Beta 2</td>
+    <td width="12%" height="112">04.03.02</td>
+    <td width="77%" height="112"> 
+      <p>- non public<br>
+        bugfixes:<br>
+        - corrected maya iff type (currently non official inhouse iff type)<br>
+        added:<br>
+        - steering desires: seek / moth seek / arrival of multiple points, curves, 
+        surfaces; curve-, surface following; bug head direction</p>
+    </td>
+  </tr>
+  <tr valign="top"> 
+    <td width="11%" height="172">Beta 3</td>
+    <td width="12%" height="172">12.06.02</td>
+    <td width="77%" height="172"> 
+      <p>-non public<br>
+        updates:<br>
+        - new more user friendly AETemplates<br>
+        - combined all different node in one plugin<br>
+        - easier steering desire combinations<br>
+        added:<br>
+        - steering desires: obstacle avoidance, mesh following, bug wander<br>
+        - super fancy node icons (for hypergraph also)<br>
+        - advanced connection editor for much easier connection setup</p>
+    </td>
+  </tr>
+  <tr valign="top"> 
+    <td width="11%" height="32">1.0</td>
+    <td width="12%" height="32">11.10.02</td>
+    <td width="77%" height="32">official release</td>
+  </tr>
+  <tr valign="top">
+    <td width="11%" height="93">1.1</td>
+    <td width="12%" height="93">30.10.02</td>
+    <td width="77%" height="93"> 
+      <p>changes:<br>
+        - removed limits on force and distance attributes<br>
+        - other minor fixes<br>
+        added:<br>
+        - recompiled version for Maya 4.5</p>
+      </td>
+  </tr>
+</table>
+</body>
+</html>

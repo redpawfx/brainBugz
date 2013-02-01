@@ -1,0 +1,150 @@
+<html>
+<head>
+<title>bRAINbUGZ Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<blockquote>
+  <p></p>
+  <p></p>
+  <p></p>
+  <p></p>
+</blockquote>
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="deta"></a>&nbsp;appendix</font></td>
+  </tr>
+</table>
+
+  
+<br>
+&nbsp; 
+<table width="97%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="de_con"></a>&nbsp;script 
+        bbConnect</b></font></td>
+    </tr>
+  </table>
+<p><b>Synopsis</b><br>
+  <font face="Courier New, Courier, mono" size="2">int bbConnect(string $sourceNode, 
+  string $destinationNode,int $index) </font></p>
+<p><b>ReturnValue</b><br>
+  1 if operation successfuly, 0 else</p>
+<p><b>Description</b><br>
+  This command greatly simplifies the setup process for bRAINbUGZ. The table shows 
+  all possible combinations of source and destination nodes and actions taken 
+  by the script.</p>
+<table width="97%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr bgcolor="#FFFFCC"> 
+      <td width="16%"><b>Source Node</b></td>
+      <td width="17%"><b>Destination Node</b></td>
+      <td width="67%"><b>Action</b></td>
+    </tr>
+    <tr> 
+      <td rowspan="2" valign="top" width="16%">particle</td>
+      <td width="17%" valign="top">bbSteeringDesire</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        particle.fieldData bbSD.inputData[0];</font></td>
+    </tr>
+    <tr> 
+      <td width="17%" valign="top">field</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        particle.fieldData field.inputData[0];</font></td>
+    </tr>
+    <tr> 
+      <td rowspan="2" valign="top" width="16%">bbSteeringDesire</td>
+      <td width="17%" valign="top">particle</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        bbSD.outputForce[0] particle.inputForce[index];</font></td>
+    </tr>
+    <tr> 
+      <td width="17%" valign="top">bbCombineForces</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        bbSD.outputForce[0] bbCF.inputForces[index];<br>
+        connectAttr bbSD.priority bbCF.inputPriorities[index];<br>
+        connectAttr bbSD.weight bbCF.inputWeights[index];</font></td>
+    </tr>
+    <tr> 
+      <td rowspan="2" valign="top" width="16%">field</td>
+      <td width="17%" valign="top">particle</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        field.outputForce[0] particle.inputForce[index];</font></td>
+    </tr>
+    <tr> 
+      <td width="17%" valign="top">bbCombineForces</td>
+      <td width="67%"> 
+        <p><font face="Courier New, Courier, mono" size="2">select field;<br>
+          </font><font face="Courier New, Courier, mono" size="2">addAttr -sn 
+          wei -ln weight -dv 1 -min 1 -max 100;<br>
+          addAttr -sn pri -ln priority -dv 1 -min 1 -max 100;<br>
+          connectAttr field.outputForce[0] bbCF.inputForces[index];<br>
+          connectAttr field.priority bbCF.inputPriorities[index];<br>
+          connectAttr field.weight bbCF.inputWeights[index]; </font></p>
+      </td>
+    </tr>
+    <tr> 
+      <td rowspan="2" valign="top" width="16%">bbCombineForces</td>
+      <td width="17%" valign="top">particle</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        bbCF.outputForce particle.inputForce[index];</font></td>
+    </tr>
+    <tr> 
+      <td width="17%" valign="top">bbCombineForces</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        bbCF.outputForce bbCF2.inputForces[index];<br>
+        connectAttr bbCF.priority bbCF2.inputPriorities[index];<br>
+        connectAttr bbCF.weight bbCF2.inputWeights[index]; </font></td>
+    </tr>
+    <tr> 
+      <td valign="top" width="16%">locator</td>
+      <td width="17%" valign="top">bbSteeringDesire</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        locator.worldPosition bbSD.inputPoint[index];</font></td>
+    </tr>
+    <tr> 
+      <td valign="top" width="16%">nurbsCurve</td>
+      <td width="17%" valign="top">bbSteeringDesire</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        curve.worldSpace bbSD.inputCurve[index];</font></td>
+    </tr>
+    <tr> 
+      <td valign="top" width="16%">nurbsSurface</td>
+      <td width="17%" valign="top">bbSteeringDesire</td>
+      <td width="67%"><font face="Courier New, Courier, mono" size="2">connectAttr 
+        surface.worldSpace bbSD.inputSurface[index];</font></td>
+    </tr>
+  </table>
+
+<p><b>Arguments</b><br>
+  <font face="Courier New, Courier, mono" size="2">string $sourceNode</font> - 
+  node from which should be connected<br>
+  <font size="2" face="Courier New, Courier, mono">string $destinationNode</font> 
+  - node to which should be connected<br>
+  <font face="Courier New, Courier, mono" size="2">int $index </font>- index of 
+  destination nodes array attribute, if -1 connecting to next available</p>
+<p><b>Examples</b></p>
+<p>Create particle node <font face="Courier New, Courier, mono" size="2">particleShape1</font>, 
+  then enter this:</p>
+<p><font face="Courier New, Courier, mono" size="2">createNode bbSteeringDesire 
+  -n bbSD_1;<br>
+  createNode bbSteeringDesire -n bbSD_2;<br>
+  createNode bbCombineForces -n bbCF;<br>
+  </font></p>
+<p>// Connect particles with steering desires</p>
+<p><font face="Courier New, Courier, mono" size="2">bbConnect particleShape1 bbSD_1 
+  0;</font><br>
+  <font face="Courier New, Courier, mono" size="2">bbConnect particleShape1 bbSD_2 
+  0;</font></p>
+<p>// Connect steering desires with force combiner</p>
+<p><font face="Courier New, Courier, mono" size="2">bbConnect bbSD_1 bbCF 0;<br>
+  bbConnect bbSD_2 bbCF 1;</font></p>
+<p>// Connect force combiner with particles</p>
+<p><font face="Courier New, Courier, mono" size="2">bbConnect bbCF particleShape1;<br>
+  </font></p>
+<p><b>Notes</b><br>
+  It is recommended to always use an specific index, so you are sure how nodes 
+  are connected.</p>
+<p>&nbsp;</p>
+</body>
+</html>

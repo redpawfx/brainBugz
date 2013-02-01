@@ -1,0 +1,82 @@
+<html>
+<head>
+<title>Untitled Document</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="inst"></a>&nbsp;general 
+      bug attributes</font></td>
+  </tr>
+</table>
+<p>Create a steering desire using the brainbugz menu entry:</p>
+<p><img src="images/tut_bbMenu.gif" width="214" height="118" border="1"></p>
+<p>Now you can edit general bug attributes for this desire</p>
+<p><img src="images/generalBugAttr.gif" width="365" height="229" border="1"></p>
+  <table width="92%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="3"><b>Physical Attributes</b><b></b><b></b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%"><b>Bug Radius</b></td>
+      <td width="7%">double</td>
+      <td width="76%" valign="top">- the radius defines a bounding sphere around 
+        the particle, this will be used in computations where the bugs size does 
+        matter (collision avoidance)</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%"><b>Maximum Force</b></td>
+      <td width="7%">double</td>
+      <td width="76%" valign="top">- in behavioural animation forces are self 
+        applied and hence limited, maximum force defines how much force a bug 
+        can apply for the specific steering desire</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%"><b>Inverse Desired Steering Force</b></td>
+      <td width="7%">bool</td>
+      <td width="76%" valign="top">- if active, desired steering force is scaled 
+        with '-1', that means, e.g. seek will become flee</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%"><b>Desired Speed</b></td>
+      <td width="7%">double</td>
+      <td width="76%" valign="top">- speed at which bug wants to travel through 
+        space </td>
+    </tr>
+  </table>
+<p>&nbsp;</p>
+  <table width="92%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="4"><b>Field Of View Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Use Sensor Range</b></td>
+      <td width="6%">bool</td>
+      <td width="38%" valign="top">- check whether to use Sensor Range or not</td>
+      <td rowspan="4" width="41%" valign="middle"> &nbsp;<img src="images/bugstruc.gif" width="231" height="163"></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Sensor Range</b></td>
+      <td width="6%">double</td>
+      <td width="38%" valign="top">- active if Use Sensor Range is checked<br>
+        - defines a distance at which bugs can sense other bugs or targets, think 
+        of a sphere with radius Sensor Range around the position of the bug</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Use Sensor Angle</b></td>
+      <td width="6%">bool</td>
+      <td width="38%" valign="top">- check whether to use Sensor Angle or not</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Sensor Angle</b></td>
+      <td width="6%">angle</td>
+      <td width="38%" valign="top">- active if Use Sensor Angle is checked<br>
+        - defines an angle around the heading vector of the bug in which it can 
+        sense bugs or targets, think of a cone which top is located at the position 
+        of the bug</td>
+    </tr>
+  </table>
+</body>
+</html>

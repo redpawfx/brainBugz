@@ -1,0 +1,78 @@
+<html>
+<head>
+<title>brainbugz documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdN"></a>&nbsp;steering 
+      desires - neighbor desires</font></td>
+  </tr>
+</table>
+<p>- although it is not required, it is recommeneded to use the &quot;field of 
+  view&quot; attributes to limit the bugs view of the world, this will give you 
+  better results</p>
+
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdNali"></a>&nbsp;alignment</font></td>
+    </tr>
+  </table>
+<p>- alignment steering desire forces the bug to align itself with the bugs in 
+  its viewing range<br>
+  - it will head in the same direction and try to adjust to the speed of the bugs 
+  nearby<br>
+  - produces zero result if no other bugs in field of view<br>
+</p>
+<p><img src="images/sdNeighborAlign.gif" width="212" height="179" border="1"></p>
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdNcoh"></a>&nbsp;cohesion</font></td>
+    </tr>
+  </table>
+
+<p>- Bugs with this desire will try to approach and form a group with other nearby 
+  bugs by heading for the average position of these bugs <br>
+  - produces zero result if no other bugs in field of view </p>
+<p><img src="images/sdNeighborCohesion.gif" width="149" height="167" border="1"></p>
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdNsep"></a>&nbsp;separation</font></td>
+    </tr>
+  </table>
+
+<p>- this steering desire can be used to prevent bugs vom crowding together, it 
+  forces the character to steer away from the other bugs nearby<br>
+  - this produces good results when the bugs are aligned or the weight is relativly 
+  low regarding the maximum self applied force <br>
+  - produces zero result if no other bugs in field of view </p>
+<p><img src="images/sdNeighborSeparation.gif" width="220" height="179" border="1"><br>
+</p>
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdNkee"></a>&nbsp;keep 
+        distance </font></td>
+    </tr>
+  </table>
+
+<p>- &quot;keep distance&quot; will force the bug to keep the defined distance 
+  to the nearest of the nearby bugs<br>
+  - bug will try to change its direction as small as possible</p>
+<p><img src="images/sd_keepDistance.gif" width="220" height="192" border="1"></p>
+<table width="93%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="3"><b>Keep Distance Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="11%"><b>Distance</b></td>
+      <td width="8%">double</td>
+      <td width="81%">- distance to keep from the nearest bug</td>
+    </tr>
+  </table>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</body>
+</html>

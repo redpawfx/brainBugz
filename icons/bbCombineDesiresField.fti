@@ -1,0 +1,332 @@
+#	Path_1
+		color(0)
+		bgnpolygon();
+			vertex(64.70588235 ,26.31578947);
+			vertex(76.47058824 ,26.31578947);
+			vertex(76.47058824 ,15.78947368);
+			vertex(64.70588235 ,15.78947368);
+		endpolygon();
+
+#	Path_2
+		color(0)
+		bgnpolygon();
+			vertex(64.70588235 ,100);
+			vertex(64.70588235 ,89.47368421);
+			vertex(70.58823529 ,89.47368421);
+			vertex(70.58823529 ,100);
+		endpolygon();
+
+#	Path_3
+		color(0)
+		bgnpolygon();
+			vertex(70.58823529 ,100);
+			vertex(64.70588235 ,100);
+			vertex(64.70588235 ,89.47368421);
+			vertex(70.58823529 ,89.47368421);
+		endpolygon();
+
+#	Path_4
+		color(0)
+		bgnpolygon();
+			vertex(35.29411765 ,89.47368421);
+			vertex(64.70588235 ,89.47368421);
+			vertex(64.70588235 ,0);
+			vertex(35.29411765 ,0);
+		endpolygon();
+
+#	Path_5
+		color(0)
+		bgnpolygon();
+			vertex(17.64705882 ,57.89473684);
+			vertex(35.29411765 ,57.89473684);
+			vertex(35.29411765 ,26.31578947);
+			vertex(17.64705882 ,26.31578947);
+		endpolygon();
+
+#	Path_6
+		color(0)
+		bgnpolygon();
+			vertex(64.70588235 ,84.21052632);
+			vertex(64.70588235 ,73.68421053);
+			vertex(70.58823529 ,73.68421053);
+			vertex(70.58823529 ,84.21052632);
+		endpolygon();
+
+#	Path_7
+		color(0)
+		bgnpolygon();
+			vertex(29.41176471 ,84.21052632);
+			vertex(29.41176471 ,73.68421053);
+			vertex(35.29411765 ,73.68421053);
+			vertex(35.29411765 ,84.21052632);
+		endpolygon();
+
+#	Path_8
+		color(0)
+		bgnpolygon();
+			vertex(88.23529412 ,84.21052632);
+			vertex(88.23529412 ,73.68421053);
+			vertex(94.11764706 ,73.68421053);
+			vertex(94.11764706 ,84.21052632);
+		endpolygon();
+
+#	Path_9
+		color(0)
+		bgnpolygon();
+			vertex(5.882352941 ,84.21052632);
+			vertex(5.882352941 ,73.68421053);
+			vertex(11.76470588 ,73.68421053);
+			vertex(11.76470588 ,84.21052632);
+		endpolygon();
+
+#	Path_10
+		color(0)
+		bgnpolygon();
+			vertex(88.23529412 ,10.52631579);
+			vertex(88.23529412 ,0);
+			vertex(94.11764706 ,0);
+			vertex(94.11764706 ,10.52631579);
+		endpolygon();
+
+#	Path_11
+		color(0)
+		bgnpolygon();
+			vertex(64.70588235 ,57.89473684);
+			vertex(82.35294118 ,57.89473684);
+			vertex(82.35294118 ,26.31578947);
+			vertex(64.70588235 ,26.31578947);
+		endpolygon();
+
+#	Path_12
+		color(0)
+		bgnpolygon();
+			vertex(64.70588235 ,15.78947368);
+			vertex(64.70588235 ,5.263157895);
+			vertex(70.58823529 ,5.263157895);
+			vertex(70.58823529 ,15.78947368);
+		endpolygon();
+
+#	Path_13
+		color(0)
+		bgnpolygon();
+			vertex(5.882352941 ,10.52631579);
+			vertex(5.882352941 ,0);
+			vertex(11.76470588 ,0);
+			vertex(11.76470588 ,10.52631579);
+		endpolygon();
+
+#	Path_14
+		color(0)
+		bgnpolygon();
+			vertex(29.41176471 ,100);
+			vertex(29.41176471 ,89.47368421);
+			vertex(35.29411765 ,89.47368421);
+			vertex(35.29411765 ,100);
+		endpolygon();
+
+#	Path_15
+		color(0)
+		bgnpolygon();
+			vertex(29.41176471 ,15.78947368);
+			vertex(29.41176471 ,5.263157895);
+			vertex(35.29411765 ,5.263157895);
+			vertex(35.29411765 ,15.78947368);
+		endpolygon();
+
+#	Path_16
+		color(0)
+		bgnpolygon();
+			vertex(23.52941176 ,26.31578947);
+			vertex(35.29411765 ,26.31578947);
+			vertex(35.29411765 ,15.78947368);
+			vertex(23.52941176 ,15.78947368);
+		endpolygon();
+
+#	Path_17
+		color(0)
+		bgnpolygon();
+			vertex(23.52941176 ,68.42105263);
+			vertex(35.29411765 ,68.42105263);
+			vertex(35.29411765 ,57.89473684);
+			vertex(23.52941176 ,57.89473684);
+		endpolygon();
+
+#	Path_18
+		color(0)
+		bgnpolygon();
+			vertex(64.70588235 ,68.42105263);
+			vertex(76.47058824 ,68.42105263);
+			vertex(76.47058824 ,57.89473684);
+			vertex(64.70588235 ,57.89473684);
+		endpolygon();
+
+#	Path_19
+		color(0)
+		bgnpolygon();
+			vertex(11.76470588 ,21.05263158);
+			vertex(23.52941176 ,21.05263158);
+			vertex(23.52941176 ,15.78947368);
+			vertex(11.76470588 ,15.78947368);
+		endpolygon();
+
+#	Path_20
+		color(0)
+		bgnpolygon();
+			vertex(82.35294118 ,15.78947368);
+			vertex(94.11764706 ,15.78947368);
+			vertex(94.11764706 ,10.52631579);
+			vertex(82.35294118 ,10.52631579);
+		endpolygon();
+
+#	Path_21
+		color(0)
+		bgnpolygon();
+			vertex(76.47058824 ,21.05263158);
+			vertex(88.23529412 ,21.05263158);
+			vertex(88.23529412 ,15.78947368);
+			vertex(76.47058824 ,15.78947368);
+		endpolygon();
+
+#	Path_22
+		color(0)
+		bgnpolygon();
+			vertex(5.882352941 ,47.36842105);
+			vertex(17.64705882 ,47.36842105);
+			vertex(17.64705882 ,42.10526316);
+			vertex(5.882352941 ,42.10526316);
+		endpolygon();
+
+#	Path_23
+		color(0)
+		bgnpolygon();
+			vertex(82.35294118 ,47.36842105);
+			vertex(94.11764706 ,47.36842105);
+			vertex(94.11764706 ,42.10526316);
+			vertex(82.35294118 ,42.10526316);
+		endpolygon();
+
+#	Path_24
+		color(0)
+		bgnpolygon();
+			vertex(11.76470588 ,68.42105263);
+			vertex(23.52941176 ,68.42105263);
+			vertex(23.52941176 ,63.15789474);
+			vertex(11.76470588 ,63.15789474);
+		endpolygon();
+
+#	Path_25
+		color(0)
+		bgnpolygon();
+			vertex(76.47058824 ,68.42105263);
+			vertex(88.23529412 ,68.42105263);
+			vertex(88.23529412 ,63.15789474);
+			vertex(76.47058824 ,63.15789474);
+		endpolygon();
+
+#	Path_26
+		color(0)
+		bgnpolygon();
+			vertex(5.882352941 ,15.78947368);
+			vertex(17.64705882 ,15.78947368);
+			vertex(17.64705882 ,10.52631579);
+			vertex(5.882352941 ,10.52631579);
+		endpolygon();
+
+#	Path_27
+		color(0)
+		bgnpolygon();
+			vertex(82.35294118 ,73.68421053);
+			vertex(88.23529412 ,73.68421053);
+			vertex(88.23529412 ,68.42105263);
+			vertex(82.35294118 ,68.42105263);
+		endpolygon();
+
+#	Path_28
+		color(0)
+		bgnpolygon();
+			vertex(0 ,52.63157895);
+			vertex(5.882352941 ,52.63157895);
+			vertex(5.882352941 ,47.36842105);
+			vertex(0 ,47.36842105);
+		endpolygon();
+
+#	Path_29
+		color(0)
+		bgnpolygon();
+			vertex(0 ,52.63157895);
+			vertex(5.882352941 ,52.63157895);
+			vertex(5.882352941 ,47.36842105);
+			vertex(0 ,47.36842105);
+		endpolygon();
+
+#	Path_30
+		color(0)
+		bgnpolygon();
+			vertex(11.76470588 ,73.68421053);
+			vertex(17.64705882 ,73.68421053);
+			vertex(17.64705882 ,68.42105263);
+			vertex(11.76470588 ,68.42105263);
+		endpolygon();
+
+#	Path_31
+		color(0)
+		bgnpolygon();
+			vertex(94.11764706 ,52.63157895);
+			vertex(100 ,52.63157895);
+			vertex(100 ,47.36842105);
+			vertex(94.11764706 ,47.36842105);
+		endpolygon();
+
+#	Path_32
+		color(0)
+		bgnpolygon();
+			vertex(94.11764706 ,52.63157895);
+			vertex(100 ,52.63157895);
+			vertex(100 ,47.36842105);
+			vertex(94.11764706 ,47.36842105);
+		endpolygon();
+
+#	Path_33
+		color(0)
+		bgnpolygon();
+			vertex(41.17647059 ,94.73684211);
+			vertex(58.82352941 ,94.73684211);
+			vertex(58.82352941 ,89.47368421);
+			vertex(41.17647059 ,89.47368421);
+		endpolygon();
+		
+#	Path_34
+		color(-21)
+		bgnpolygon();
+			vertex(50 ,76.31578947);
+			vertex(32.35294118 ,50);
+			vertex(50 ,34.21052632);
+			vertex(67.64705882 ,50);
+		endpolygon();
+
+#	Path_35
+		color(-41)
+		bgnpolygon();
+			vertex(50 ,34.21052632);
+			vertex(32.35294118 ,44.73684211);
+			vertex(26.47058824 ,34.21052632);
+			vertex(32.35294118 ,23.68421053);
+		endpolygon();
+
+#	Path_36
+		color(-41)
+		bgnpolygon();
+			vertex(67.64705882 ,44.73684211);
+			vertex(50 ,34.21052632);
+			vertex(67.64705882 ,23.68421053);
+			vertex(73.52941176 ,34.21052632);
+		endpolygon();
+
+#	Path_37
+		color(-41)
+		bgnpolygon();
+			vertex(50 ,34.21052632);
+			vertex(38.23529412 ,18.42105263);
+			vertex(50 ,13.15789474);
+			vertex(61.76470588 ,18.42105263);
+		endpolygon();

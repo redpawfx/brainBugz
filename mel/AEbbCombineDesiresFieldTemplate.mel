@@ -1,0 +1,307 @@
+//
+// bbCombineDesiresField Template
+//
+// bRAINbUGZ v1.0
+// behavioural animation engine for maya particles
+//
+// tested on Maya 4.01, Windows environment
+// (c) carsten kolve, 01.2002
+//
+// carsten@kolve.com
+// www.kolve.com
+//
+// feedback, comments, bug reports, job offers welcome :)
+//
+
+source AEbbConnectionEditor.mel;
+
+global proc AEbbCombineDesiresFieldTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Combine Desires Attributes" -collapse false;
+			editorTemplate -beginNoOptimize;
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Connected Desires, Fields, Combiner";
+			editorTemplate -callCustom "inputDesireTableNew" "inputDesireTableReplace" " ";
+			editorTemplate -addSeparator;
+			editorTemplate -addControl "combineMode" "updateCDAE";
+			editorTemplate -callCustom "desireSelectionNew" "desireSelectionReplace" "selectedForce";
+			editorTemplate -endNoOptimize;
+		editorTemplate -endLayout;
+
+		// suppressed attributes
+		editorTemplate -suppress "weight";
+		editorTemplate -suppress "priority";
+		editorTemplate -suppress "ditheringFactor";
+		editorTemplate -suppress "outputForce";
+		editorTemplate -suppress "selectedForce";
+		editorTemplate -suppress "inputForce";
+		editorTemplate -suppress "numForces";
+		editorTemplate -suppress "influenceData";
+
+		// include/call base class/node attributes
+//		AEdynObjectCommon $nodeName;
+//		AEdynObjectInclude $nodeName;
+
+	editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+}
+
+
+global proc updateCDAE( string $nodeName )
+{
+     // get attr state
+    string $attr = $nodeName + ".combineMode";
+    int $cm = `getAttr $attr`;
+
+    // desire table adjustments
+    switch ($cm)
+    {
+    	case 1: // weights
+   				scriptTable -e
+   					-cw 3 60	// column 3 - 'weights'
+   					-cw 4 0		// column 4 - 'priority'
+	    			-cw 5 0
+	    			-cw 6 90			// column 6 - 'type'
+	    			inputDesireTable;
+    			break;
+    	case 2: // priority
+    	   		scriptTable -e
+    	   			-cw 3 0		// column 3 - 'weights'
+    				-cw 4 60	// column 4 - 'priority'
+	    			-cw 5 0
+	    			-cw 6 90			// column 6 - 'type'
+	    			inputDesireTable;
+    			break;
+    	case 0: // linear
+    	case 3: // strongest
+    	case 4: // weakest
+    	case 5: // selection
+    			scriptTable -e
+					-cw 3 0
+    				-cw 4 0
+	    			-cw 5 0
+	    			-cw 6 90			// column 6 - 'type'
+	    			inputDesireTable;
+    			break;
+    }
+
+	int $dimIt = false;
+
+	// combine mode = "selection" ??
+	if ( $cm == 5 )
+		$dimIt = true;
+
+	int $maxValue = getNumberOfConnectedElements($nodeName+".inputForce");
+
+    intSliderGrp -e -enable $dimIt desireIndexGrp ;
+
+	if ($maxValue > 1)
+	{
+		if ((`intSliderGrp -q -value desireIndexGrp`) > $maxValue)
+			intSliderGrp -e -value ($maxValue-1) desireIndexGrp;
+
+		intSliderGrp -e -max ($maxValue-1) desireIndexGrp;
+	}
+	else
+		intSliderGrp -e -enable false -value 0 desireIndexGrp;
+}
+
+// control for displaying and selecting input desires
+global proc inputDesireTableNew(string $nodeName)
+{
+	// create table
+	string $nodeName = substring($nodeName,1,size($nodeName)-2);
+
+	int $maxValue = getNumberOfConnectedElements($nodeName+".inputForce");
+
+	columnLayout;
+
+		text -label "(e) editable";
+//		checkBox -label "Display Desire Type                                    (e) editable" -value on
+//				-onCommand "scriptTable -e -cw 7 95 inputDesireTable"
+//				-offCommand "scriptTable -e -cw 7 0 inputDesireTable";
+
+// ~~~~~~~~~~~~~~~~~~~
+//  in the scriptTable below was the initial problem wich has 'corrupted' the updateCDAE procedure :) - fixed now
+// ~~~~~~~~~~~~~~~~~~~
+		scriptTable -rows $maxValue -columns 6
+	    	-label 1 "Index"
+	    	-label 2 "Desire" // -cw 2 45
+	    	-label 3 "Weight (e)" 		// -cw 3 60
+	    	-label 4 "Priority (e)" 	// -cw 4 60
+	    	-label 5 "Dither (e)" 		// -cw 5 72
+	    	-label 6 "Type"  			// -cw 6 30
+	    	-cw 1 20 // index
+	    	-cw 2 95 // desire
+	    	-cw 6 90 // type
+	    	-getCellCmd ("fillInputDesireTable "+$nodeName)
+	    	-cellChangedCmd ("setInputDesireCell "+$nodeName)
+	    	-width 410
+	    	-height (30+16*$maxValue)
+	    	inputDesireTable;
+// ~~~~~~~~~~~~~~~~~~~
+//  in the scriptTable above was the initial problem wich has 'corrupted' the updateCDAE procedure :) - fixed now
+// ~~~~~~~~~~~~~~~~~~~
+
+	// create buttons
+		rowLayout -nc 2 -cw2 72 135
+				  -cl2 "left" "center";
+		text -l "DisConnect:";
+		string $cNodes ="{\"bbSteeringDesireField\",\"bbCombineDesiresField\",\"airField\",\"dragField\",\"gravityField\",\"newtonField\",\"radialField\",\"turbulenceField\",\"uniformField\",\"vortexField\",\"volumeAxisField\"}";
+		button -l "Desire / Field / Combiner"   -c ("connectSelect "+$nodeName+".inputForce "+$cNodes) desireButton;
+		setParent .. ;
+}
+
+global proc inputDesireTableReplace(string $nodeName)
+{
+	string $nodeName = substring($nodeName,1,size($nodeName)-2);
+
+    // update button commands
+	string $cNodes ="{\"bbSteeringDesireField\",\"bbCombineDesiresField\",\"airField\",\"dragField\",\"gravityField\",\"newtonField\",\"radialField\",\"turbulenceField\",\"uniformField\",\"vortexField\",\"volumeAxisField\"}";
+
+    button -e -c ("connectSelect "+$nodeName+".inputForce "+$cNodes) desireButton;
+
+	// attach new node to table
+	scriptTable -e
+				-getCellCmd ("fillInputDesireTable "+$nodeName)
+				-cellChangedCmd ("setInputDesireCell "+$nodeName)
+    			inputDesireTable;
+
+    // refresh table
+    scriptTable -e 	-clearTable	inputDesireTable;
+
+	// update nr of rows and size of table
+	int $maxValue = getNumberOfConnectedElements($nodeName+".inputForce");
+
+	scriptTable -e -height (30+16*$maxValue) -rows ($maxValue) inputDesireTable;
+
+	// update desire index max value
+	if ($maxValue > 1)
+	{
+		if ((`intSliderGrp -q -value desireIndexGrp`) > $maxValue)
+			intSliderGrp -e -value ($maxValue-1) desireIndexGrp;
+
+		intSliderGrp -e -max ($maxValue-1) desireIndexGrp;
+	}
+	else
+	{
+		intSliderGrp -e -enable false -value 0 desireIndexGrp;
+	}
+
+
+}
+
+global proc string fillInputDesireTable(string $nodeName, int $row, int $col)
+{
+	string $result;
+	$row --;
+
+	if ($col == 1)
+		// index
+		$result = $row;
+	else
+	{
+		string $conn[];
+
+		switch ($col)
+		{
+			case 2: // desire
+					$conn = eval("listConnections -s true -d false "+$nodeName+".inputForce["+$row+"]");
+					break;
+
+			case 6: //  type
+					$conn = eval("listConnections -s true -d false "+$nodeName+".inputForce["+$row+"]");
+					$conn[0] = `nodeType $conn[0]`;
+					break;
+
+			case 3: // weights
+					if (catch (eval("getAttr "+$nodeName+".weight["+$row+"]")))
+					{
+						eval("setAttr "+$nodeName+".weight["+$row+"] 1.0");
+						$conn[0] = "1.0";
+					}
+					else
+					{
+						$conn[0] = eval("getAttr "+$nodeName+".weight["+$row+"]");
+					}
+					break;
+
+			case 4: // priority
+					if (catch (eval("getAttr "+$nodeName+".priority["+$row+"]")))
+					{
+						eval("setAttr "+$nodeName+".priority["+$row+"] 1.0");
+						$conn[0] = "1";
+					}
+					else
+					{
+						$conn[0] = eval("getAttr "+$nodeName+".priority["+$row+"]");
+					}
+					break;
+
+			case 5: // dithering factor
+					if (catch (eval("getAttr "+$nodeName+".ditheringFactor["+$row+"]")))
+					{
+						eval("setAttr "+$nodeName+".ditheringFactor["+$row+"] 1.0");
+						$conn[0] = "1.0";
+					}
+					else
+					{
+						$conn[0] = eval("getAttr "+$nodeName+".ditheringFactor["+$row+"]");
+					}
+					break;
+		}
+
+		if (size($conn)==0)
+			$result = "";
+		else
+			$result = $conn[0];
+	}
+	return $result;
+}
+
+global proc int setInputDesireCell(string $nodeName, int $row, int $col, string $input)
+{
+	$row--;
+	float $in = $input;
+
+	int $result = false;
+
+	switch ($col)
+	{
+		case 3: // weights
+				eval("setAttr "+$nodeName+".weight["+$row+"] "+$in);
+				$result = true;
+				break;
+
+		case 4: // priority
+				int $inI = $in;
+				eval("setAttr "+$nodeName+".priority["+$row+"] "+$inI);
+				$result = true;
+				break;
+
+		case 5: // dithering factor
+				eval("setAttr "+$nodeName+".ditheringFactor["+$row+"] "+$in);
+				$result = true;
+				break;
+	}
+
+	if ($result)
+	{
+		scriptTable -e -clearTable inputDesireTable;
+	}
+
+	return $result;
+}
+
+global proc desireSelectionNew(string $inputIndex)
+{
+    intSliderGrp -label "Desire Index" -field true -minValue 0 -maxValue 5 desireIndexGrp;
+	connectControl desireIndexGrp $inputIndex;
+}
+
+global proc desireSelectionReplace(string $inputIndex)
+{
+	connectControl desireIndexGrp $inputIndex;
+}

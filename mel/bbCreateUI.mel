@@ -1,0 +1,1517 @@
+// script will be sourced when brainbugz.mll is loaded
+
+global proc bbCreateUI()
+{
+	// check, if menu already exists
+	if(!(`exists bbMenu`))
+	{
+		// build menu
+		menu -l "brainbugz" -aob 1 -to true -p "MayaWindow" bbMenu;
+		menuItem -l "Create Steering Desire" -c "bbSteeringDesire";
+		menuItem -l "Create Desire Combiner" -c "bbCombineDesires";
+		menuItem -divider true;
+		menuItem -l "Clamp Speed Particle" -c "bbClampSpeed";
+		menuItem -divider true;
+		menuItem -l "Connection Editor..." -c "bbConnectionEditor";
+		menuItem -divider true;
+		menuItem -l "Help..." -enable false;
+		menuItem -l "About..." -enable false;
+		setParent ..;
+	}
+}
+
+//
+// proc will create new steering desire node and renames it
+//
+global proc bbSteeringDesire()
+{
+    string $nodeName = `createNode bbSteeringDesireField`;
+    $nodeName = `rename $nodeName "bbSD#"`;
+}
+
+//
+// proc will create new combine desire node and renames it
+//
+global proc bbCombineDesires()
+{
+    string $nodeName = `createNode bbCombineDesiresField`;
+    $nodeName = `rename $nodeName "bbCD#"`;
+}
+
+//
+// proc will modify the selected particles, so their speed can be min/max clamped
+//
+global proc int bbClampSpeed()
+{
+	// get current selection
+	string $selection[] = `ls -sl`;
+
+	// error checking
+	//
+
+	// nothing selected ?
+	if (size($selection)==0)
+	{
+    	error("Nothing selected! Select particle object!");
+    	return false;
+	}
+
+	// if node = transform, get the shape
+	string $node = getShape( $selection[0]);
+
+    // check if node type = particle
+    if(!(((eval ("nodeType " + $node))=="particle")||((eval ("nodeType " + $node))=="nParticle") ))
+    {
+    	error("Node > " + $node +" < is not of type \"particle\"!");
+    	return false;
+	}
+
+	// add clamp speed attributes
+    eval("select "+$node);
+
+    if (! attributeExists("bbMinimumSpeed",$node))
+    	eval("addAttr -sn mis -ln bbMinimumSpeed -dv 0.0 -min 0.0 -max 100;");
+
+    if (! attributeExists("bbMaximumSpeed",$node))
+    	eval("addAttr -sn ms -ln bbMaximumSpeed -dv 5.0 -min 0.001 -max 100;");
+
+  	// add particle runtime expression
+	string $cmd= "dynExpression -rbd -s \"float $velLength =mag("+$node+".velocity);if ($velLength > "+$node+".bbMaximumSpeed)"+$node+".velocity *= "+$node+".bbMaximumSpeed / $velLength ;else{ if(($velLength < "+$node+".bbMinimumSpeed)&&($velLength >0)) {"+$node+".velocity *= "+$node+".bbMinimumSpeed /$velLength ; }}\" "+$node;
+// the esxape sequence caused problems on win systems
+//	string $cmd= "dynExpression -r -s \"float $velLength = mag("+$node+".velocity);\r\n\r\nif ($velLength > "+$node+".bbMaximumSpeed)\r\n{\r\n   "+$node+".velocity *= "+$node+".bbMaximumSpeed / $velLength ;\r\n}\r\nelse\r\n{\r\n   if (($velLength < "+$node+".bbMinimumSpeed)&&($velLength >0))\r\n   {\r\n      "+$node+".velocity *= "+$node+".bbMinimumSpeed /$velLength ;\r\n   }\r\n}\" "+$node;
+ 	eval($cmd);
+
+ 	setAttr ($node+".expressionsAfterDynamics") 1;
+
+ 	print ("\nCreated attributes and added expression to node > "+$node+" < for speed clamping!");
+
+ 	return true;
+}
+
+////////////////////////////////////////////////////////////////////
+//
+// proc will connect 2 steering desire compatible objects
+//
+////////////////////////////////////////////////////////////////////
+
+global proc int bbConnect(string $nodeS, string $nodeD, int $index)
+{
+	int $return = true;
+
+	// check if nodes exist
+
+	if (!(eval("objExists " + $nodeS)))
+	{
+    	error("Source node > " + $nodeS +" < does not exists!");
+    	return false;
+    }
+
+ 	if (!(eval("objExists " + $nodeD)))
+	{
+    	error("Destination node > " + $nodeD +" < does not exists!");
+      	return false;
+    }
+
+    // check node types
+
+    string $nodeTypeQueryS = eval ("nodeType " + $nodeS);
+    string $nodeTypeQueryD = eval ("nodeType " + $nodeD);
+	string $nodeTypeS =$nodeTypeQueryS;
+	string $nodeTypeD =$nodeTypeQueryD;
+
+    // check if nodes are of a field type
+    // all fields have "...Field" in their type name, so check for this
+
+    if (eval ("gmatch "+ $nodeTypeQueryS + "\"*Field\"") )
+    	$nodeTypeS = "field";
+
+    if (eval ("gmatch "+ $nodeTypeQueryD + "\"*Field\"") )
+    	$nodeTypeD = "field";
+
+	if (eval ("gmatch "+ $nodeTypeQueryS + "\"bbSteeringDesrireField\"") )
+    	$nodeTypeS = "bbSteeringDesire";
+
+	if (eval ("gmatch "+ $nodeTypeQueryD + "\"bbSteeringDesireField\"") )
+    	$nodeTypeD = "bbSteeringDesire";
+
+	if (eval ("gmatch "+ $nodeTypeQueryS + "\"bbCombineDesiresField\"") )
+    	$nodeTypeS = "bbCombineDesires";
+
+	if (eval ("gmatch "+ $nodeTypeQueryD + "\"bbCombineDesiresField\"") )
+    	$nodeTypeD = "bbCombineDesires";
+
+
+    print  ("connecting " + $nodeTypeS + " -> " + $nodeTypeD+"\n");
+
+    // make connections, based on node types
+
+    // if connection
+
+
+    switch ($nodeTypeS)
+    {
+    	case "bbSteeringDesire":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbCombineDesires":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForces");
+
+     				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+    			break;
+
+    			case "particle":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
+    				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+    			break;
+
+				case "nParticle":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
+    				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+    			break;
+
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+    	case "bbCombineDesires":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbCombineDesires":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForces");
+     				eval("connectAttr -f "+$nodeS+".outputForce "+$nodeD+".inputForce["+$index+"]");
+    			break;
+
+    			case "particle":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
+    				eval("connectAttr -f "+$nodeS+".outputForce "+$nodeD+".inputForce["+$index+"]");
+	   			break;
+
+				case "nParticle":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
+    				eval("connectAttr -f "+$nodeS+".outputForce "+$nodeD+".inputForce["+$index+"]");
+	   			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+    	case "particle":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbSteeringDesire":
+    			case "field":
+    				eval("connectAttr -f "+$nodeS+".fieldData "+$nodeD+".inputData[0]");
+    			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+		case "nParticle":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbSteeringDesire":
+    			case "field":
+    				eval("connectAttr -f "+$nodeS+".fieldData "+$nodeD+".inputData[0]");
+    			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+    	case "field":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbCombineDesires":
+    				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+    			break;
+
+    			case "particle":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
+
+    				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+    			break;
+
+				case "nParticle":
+    			  	if($index==-1)
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
+
+    				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+    			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+
+    	break;
+
+    	case "locator":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbSteeringDesire":
+    				if($index==-1) $index =eval("getAttr -s "+$nodeD+".inputPoint");
+    				eval("connectAttr -f "+$nodeS+".wp "+$nodeD+".inputPoint["+$index+"]");
+    			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+    	case "nurbsCurve":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbSteeringDesire":
+    				if($index==-1) $index =eval("getAttr -s "+$nodeD+".bbInputCurve");
+    				eval("connectAttr -f "+$nodeS+".ws "+$nodeD+".bbInputCurve["+$index+"]");
+    			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+    	case "nurbsSurface":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbSteeringDesire":
+    				if($index==-1) $index =eval("getAttr -s "+$nodeD+".inputSurface");
+    				eval("connectAttr -f "+$nodeS+".ws "+$nodeD+".inputSurface["+$index+"]");
+    			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+    	case "mesh":
+    		switch ($nodeTypeD)
+    		{
+    			case "bbSteeringDesire":
+    				if($index==-1) $index =eval("getAttr -s "+$nodeD+".inputMesh");
+    				eval("connectAttr -f "+$nodeS+".w "+$nodeD+".inputMesh["+$index+"]");
+    			break;
+
+    			default: $return = false;
+    			break;
+	  		}
+    	break;
+
+    }
+
+    if (! $return)
+    	error("Can't connect source node > "+$nodeS+" < with destination node > "+$nodeD+" <, wrong types!");
+
+    return $return;
+}
+
+////////////////////////////////////////////////////////////////////
+//
+// connection editor proc
+//
+////////////////////////////////////////////////////////////////////
+
+
+global string $bbCurrentNode ="";
+global string $bbCurrentNodeType ="";
+global string $bbCurrentHGNode ="";
+global string $bbCurrentHGNodeType ="";
+
+
+global proc bbConnectionEditor()
+{
+	// load needed plugins if not already present
+	if (!`pluginInfo -q -loaded brainBugz`)
+		loadPlugin  brainBugz;
+
+	//
+	if (`window -q -ex bbConnectionEditorWindow`)
+	{
+		deleteUI bbConnectionEditorWindow;
+		//confirmDialog -title "bb Confirm"
+		//			  -message "bbConnectionEditor Window already exists!\nYou can`t have 2 connection editors at the same time."
+    	//			  -button "OK"  -defaultButton "OK"
+    	//			  -cancelButton "OK";
+	}
+
+	bbStartConnectionEditor();
+}
+
+
+global proc bbStartConnectionEditor()
+{
+
+	// build ui
+
+	// build window
+	window -title ("bb Connection Editor")
+		   -menuBar true -rtf false
+		   bbConnectionEditorWindow;
+
+    // build menu
+//   	menu -label "Create";
+//		menuItem -label "Steering Desire...";
+//   		menuItem -label "Desire Combiner..." ;
+//		menuItem -label "Field" -subMenu true ;
+//		 	menuItem -label "Air";
+//    		menuItem -label "Drag";
+//    		menuItem -label "Gravity";
+//    		setParent -menu ..;
+//		menuItem -label "Particle";
+//   		menuItem -divider true;
+//   		menuItem -label "Quit" ;
+
+   	menu -label "Select Node Filter" -allowOptionBoxes true;
+   	    menuItem -label " Steering Desires" -checkBox on -c "bbFilterUpdate \"selectNode\" \"\"" 	bbSelectNodeFilterSteeringDesireCheckBox;
+    	menuItem -label " Desire Combiner" 	-checkBox on -c "bbFilterUpdate \"selectNode\" \"\"" 	bbSelectNodeFilterDesireCombinerCheckBox;
+    	menuItem -label " Particles" 		-checkBox on -c "bbFilterUpdate \"selectNode\" \"\"" 	bbSelectNodeFilterParticlesCheckBox;
+    	menuItem -label " Fields" 			-checkBox on -c "bbFilterUpdate \"selectNode\" \"\"" 	bbSelectNodeFilterFieldsCheckBox;
+
+
+    menu -label "Connection Mode" -allowOptionBoxes true;
+    		radioMenuItemCollection;
+    		menuItem -label "Incoming"  -radioButton off	-c "bbSetConnectionEditorLayout \"incoming\"";
+    		menuItem -label "Outgoing"  -radioButton off	-c "bbSetConnectionEditorLayout \"outgoing\"";
+    		menuItem -label "Both"      -radioButton on	-c "bbSetConnectionEditorLayout \"both\"";
+
+	menu -label "Connection Graph";
+   		radioMenuItemCollection;
+    	menuItem -label "Focus Selected"  	-radioButton on	 bbHyperGraphFocusSelected;
+    	menuItem -label "Stick to Particle" -radioButton off -enable false bbHyperGraphStickToParticle;
+
+   	menu -label "Help";
+   		menuItem -label "Help..." -enable false;
+   		menuItem -divider true;
+   		menuItem -label "About..." -enable false;
+
+   	paneLayout -configuration "horizontal2" superPaneLayout;
+    paneLayout -configuration "vertical2" -ps 1 30 100 -parent superPaneLayout masterPaneLayout;
+
+	// master form layoutfor select, all elements will attached to this!
+   	formLayout -numberOfDivisions 100  -parent masterPaneLayout bbSelectMasterFormLayout;
+
+
+   		// layout for the "select node" outliner
+   		frameLayout -l " Select Node " -bs "etchedOut"  -li 5 -mh 5 -mw 5 bbSelectNodeFrameLayout;
+   			outlinerEditor -allowMultiSelection false -dag false -ha false bbSelectNodeEditor;
+   		setParent bbSelectMasterFormLayout;
+
+	// master form layout for node connect, all elements will attached to this!
+   		formLayout -numberOfDivisions 100  -parent masterPaneLayout bbMasterFormLayout;
+
+
+		// layout for the input "not connected" outliner
+  		frameLayout -l " not connected " -bs "etchedOut"  -li 5 -mh 5 -mw 5 bbInputNotConnectedFrameLayout;
+   			outlinerEditor -ats true -dag false bbInputNotConnectedEditor;
+   		setParent bbMasterFormLayout;
+
+		// layout for the input "connected" outliner
+  		frameLayout -l " connected " -bs "etchedOut"  -li 5 -mh 5 -mw 5 bbInputConnectedFrameLayout;
+   			outlinerEditor -ats true -dag false bbInputConnectedEditor;
+   		setParent bbMasterFormLayout;
+
+   		// layout for the output "not connected" outliner
+  		frameLayout -l " not connected " -bs "etchedOut"  -li 5 -mh 5 -mw 5 bbOutputNotConnectedFrameLayout;
+   			outlinerEditor -ats true -dag false bbOutputNotConnectedEditor;
+   		setParent bbMasterFormLayout;
+
+		// layout for the output "connected" outliner
+  		frameLayout -l " connected " -bs "etchedOut"  -li 5 -mh 5 -mw 5 bbOutputConnectedFrameLayout;
+   			outlinerEditor -ats true -dag false bbOutputConnectedEditor;
+   		setParent bbMasterFormLayout;
+
+   		// input connection buttons
+   		button -l ">>" bbInputNC2CButton;
+		button -l "<<" bbInputC2NCButton;
+
+		// output connection buttons
+		button -l ">>" bbOutputNC2CButton;
+		button -l "<<" bbOutputC2NCButton;
+
+		// layout for the "current Node" frame
+  		frameLayout -l " Current Node " -bs "etchedOut"  -li 5 -mh 5 -mw 5 bbCurrentNodeFrameLayout;
+   			rowLayout -numberOfColumns 3 -cw 1 38 -cw 2 35;
+   				picture -image "menuIconHelp.xpm" bbCurrentNodePicture;
+				text -l "Name:\nType:" -font "plainLabelFont";
+				text -font "plainLabelFont" -l "nothing selected!" bbCurrentNodeNameTypeText;
+   		setParent bbMasterFormLayout;
+
+     	// arrow images
+     	picture -image "bbcea1.xpm" bbArrowPicture;
+     	picture -image "bbcea2.xpm" bbInArrowPicture;
+     	picture -image "bbcea3.xpm" bbOutArrowPicture;
+
+     // create hypergraph
+     setParent superPaneLayout;
+ 		frameLayout -l " Connection Graph " -bs "etchedOut"  -cll true -li 5 -mh 5 -mw 5
+ 					-collapseCommand "paneLayout -e -ps 1 100 93 superPaneLayout"
+  					-expandCommand  "paneLayout -e -ps 1 100 55 superPaneLayout"
+  				bbHGFL;
+
+	    	hyperGraph -p bbHGFL
+	    			   -attributeEditor false
+	    			    bbHyperGraph;
+
+  	formLayout -edit
+    	-attachForm 	bbSelectNodeFrameLayout 	"top"    1
+    	-attachForm	  	bbSelectNodeFrameLayout     "left"   1
+    	-attachForm  	bbSelectNodeFrameLayout     "bottom" 1
+    	-attachForm		bbSelectNodeFrameLayout     "right"  1
+    bbSelectMasterFormLayout;
+
+ 	bbSetConnectionEditorLayout "both";
+
+	// create selection connections
+	//
+	string $worldSC = `selectionConnection -wl`;
+
+	// node select window
+	string $selectNodeSC =`selectionConnection`;
+
+	// input
+	string $inputNotConnectedSC =`selectionConnection` ;
+	string $inputConnectedSC = `selectionConnection` ;
+
+	// output
+	string $outputNotConnectedSC=` selectionConnection` ;
+	string $outputConnectedSC =`selectionConnection` ;
+
+	// connect selection connections with outlinereditors
+	editor -edit -mainListConnection $worldSC bbSelectNodeEditor;
+	editor -edit -mainListConnection $worldSC bbInputNotConnectedEditor;
+	editor -edit -mainListConnection $worldSC bbInputConnectedEditor;
+	editor -edit -mainListConnection $worldSC bbOutputNotConnectedEditor;
+	editor -edit -mainListConnection $worldSC bbOutputConnectedEditor;
+
+	editor -edit -selectionConnection $selectNodeSC 		bbSelectNodeEditor;
+	editor -edit -selectionConnection $inputNotConnectedSC	bbInputNotConnectedEditor;
+	editor -edit -selectionConnection $inputConnectedSC		bbInputConnectedEditor;
+	editor -edit -selectionConnection $outputNotConnectedSC	bbOutputNotConnectedEditor;
+	editor -edit -selectionConnection $outputConnectedSC	bbOutputConnectedEditor;
+
+	// attach function to selection Connection
+	selectionConnection -e -addScript "bbCurrentNodeUpdate"
+						   -removeScript ("bbCurrentNodeRemove "+ $selectNodeSC) $selectNodeSC;
+
+	// attach functionality to buttons
+  	button -e -command ("bbConnectElements \"in\" "  + $inputNotConnectedSC ) 	bbInputNC2CButton;
+	button -e -command ("bbDisconnectElements \"in\" "+ $inputConnectedSC )		bbInputC2NCButton;
+
+	button -e -command ("bbConnectElements \"out\" "  + $outputNotConnectedSC )	bbOutputNC2CButton;
+	button -e -command ("bbDisconnectElements \"out\" "+$outputConnectedSC)		bbOutputC2NCButton;
+
+
+	// createFilter
+	bbCreateFilter();
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	bbSteeringDesireField
+				-byType 	airField
+				-byType 	dragField
+				-byType 	gravityField
+				-byType 	newtonField
+				-byType 	radialField
+				-byType 	turbulenceField
+				-byType 	uniformField
+				-byType 	vortexField
+				-byType 	volumeAxisField
+				-byType 	bbCombineDesiresField
+				-byType 	particle
+				-byType     nParticle
+				hgFilter;
+
+	hyperGraph -e -filter hgFilter bbHyperGraph;
+
+
+
+	// attach filter to outliner
+	outlinerEditor -edit -filter selectNodeFilter bbSelectNodeEditor;
+
+
+	bbFilterUpdate "selectNode" "time1";
+	bbFilterUpdate "currentNode" "time1";
+
+	showWindow bbConnectionEditorWindow;
+
+	// create script job to clean up after window is closed
+	scriptJob -uiDeleted bbConnectionEditorWindow
+						("deleteUI "+ $worldSC +";"+
+						 "deleteUI "+ $selectNodeSC +";"+
+						 "deleteUI "+ $inputNotConnectedSC  +";"+
+						 "deleteUI "+ $inputConnectedSC +";"+
+						 "deleteUI "+ $outputNotConnectedSC +";"+
+						 "deleteUI "+ $outputConnectedSC +";"+
+						 "delete selectNodeFilter; delete hgFilter;"+
+						 "delete unmatchableFilter;"+
+						"delete notCurrentNodeFilter;"+
+
+						"delete inputConnectedSteeringDesireFilter;"+
+						"delete outputConnectedSteeringDesireFilter;"+
+						"delete inputAllConnectableSteeringDesireFilter;"+
+						"delete outputAllConnectableSteeringDesireFilter;"+
+						"delete inputNotConnectedSteeringDesireFilter;"+
+						"delete outputNotConnectedSteeringDesireFilter;"+
+
+						"delete inputConnectedCombineDesiresFilter;"+
+						"delete outputConnectedCombineDesiresFilter;"+
+						"delete inputAllConnectableCombineDesiresFilter;"+
+						"delete outputAllConnectableCombineDesiresFilter;"+
+						"delete inputConnectableCombineDesiresFilter;"+
+						"delete inputNotConnectedCombineDesiresFilter;"+
+						"delete outputConnectableCombineDesiresFilter;"+
+						"delete outputNotConnectedCombineDesiresFilter;"+
+
+						"delete inputConnectedParticleFilter;"+
+						"delete outputConnectedParticleFilter;"+
+						"delete inputAllConnectableParticleFilter;"+
+						"delete outputAllConnectableParticleFilter;"+
+						"delete inputNotConnectedParticleFilter;"+
+						"delete outputNotConnectedParticleFilter;"+
+
+						"delete inputConnectedNParticleFilter;"+
+						"delete outputConnectedNParticleFilter;"+
+						"delete inputAllConnectableNParticleFilter;"+
+						"delete outputAllConnectableNParticleFilter;"+
+						"delete inputNotConnectedNParticleFilter;"+
+						"delete outputNotConnectedNParticleFilter;"+
+
+						"delete inputConnectedFieldFilter;"+
+						"delete outputConnectedFieldFilter;"+
+						"delete inputAllConnectableFieldFilter;"+
+						"delete outputAllConnectableFieldFilter;"+
+						"delete inputNotConnectedFieldFilter;"+
+						"delete outputNotConnectedFieldFilter;"
+							 );
+}
+
+//*********************************************************************************
+
+global proc bbCurrentNodeUpdate(string $node[])
+{
+	string $text ="nothing selected!";
+	string $picture = "menuIconHelp.xpm";
+	global string $bbCurrentNode;
+	global string $bbCurrentNodeType;
+
+	if (size($node)>0)
+	{
+		// set currentNodeText
+		string $nodeType = eval("nodeType "+$node[0]);
+
+		// extra treatment for particle nodes
+		if ($nodeType == "transform")
+		{
+			$node = `listRelatives -shapes $node[0]`;
+			$nodeType = eval("nodeType "+$node[0]);
+		}
+
+		$bbCurrentNode = $node[0];
+		$bbCurrentNodeType = $nodeType;
+
+		$text = ($node[0]+"\n"+$nodeType);
+
+		// set currentNodePicture
+		switch ($nodeType)
+		{
+			case "bbSteeringDesireField"	: $picture = "out_bbSteeringDesire.xpm"; break;
+			case "bbCombineDesiresField"	: $picture = "out_bbCombineDesires.xpm"; break;
+			case "particle"			: $picture = "particle.xpm"; break;
+			case "nParticle" 		: $picture = "particle.xpm"; break;
+			case "airField"			: $picture = "posAir.xpm"; break;
+			case "dragField"		: $picture = "posDrag.xpm"; break;
+			case "gravityField"		: $picture = "posGravity.xpm"; break;
+			case "newtonField"		: $picture = "posNewton.xpm"; break;
+			case "radialField"		: $picture = "posRadial.xpm"; break;
+			case "turbulenceField"	: $picture = "posTurbulence.xpm"; break;
+			case "uniformField"		: $picture = "posUniform.xpm"; break;
+			case "vortexField"		: $picture = "posVortex.xpm"; break;
+			case "volumeAxisField"	: $picture = "posVolumeAxis.xpm"; break;
+		}
+	}
+
+	// set in UI
+	text -e -label $text bbCurrentNodeNameTypeText;
+	picture -e -image $picture bbCurrentNodePicture;
+
+	bbFilterUpdate "currentNode" $node[0];
+	bbUpdateHyperGraph();
+}
+
+//*********************************************************************************
+
+global proc bbCurrentNodeRemove(string $selectionConnection, string $node[])
+{
+	string $selection[] = `selectionConnection -q -object $selectionConnection`;
+	if (size($selection) == 0)
+	{
+		string $text ="nothing selected!";
+		string $picture = "menuIconHelp.xpm";
+
+		// set in UI
+		text -e -label $text bbCurrentNodeNameTypeText;
+		picture -e -image $picture bbCurrentNodePicture;
+	}
+	bbFilterUpdate "currentNode" "time1";
+}
+
+//*********************************************************************************
+
+global proc bbFilterUpdate(string $mode, string $currentNode)
+{
+
+	// common filter strings
+	string $fieldFilter = (	"-byType airField "		+	"-byType dragField "		+
+							"-byType gravityField "	+	"-byType newtonField "		+
+							"-byType radialField "	+	"-byType turbulenceField "	+
+							"-byType uniformField " +	"-byType vortexField "		+
+							"-byType volumeAxisField ");
+
+	string $bbSteeringDesireFilter = "-byType bbSteeringDesireField ";
+	string $bbCombineDesiresFilter = "-byType bbCombineDesiresField ";
+	string $particleFilter = ("-byType particle "+ "-byType nParticle ");
+
+	switch ($mode)
+	{
+		case "selectNode":
+			{
+				// build new filter
+				string $filterTemp ="";
+				if(`menuItem -q -cb bbSelectNodeFilterSteeringDesireCheckBox`)
+					$filterTemp += $bbSteeringDesireFilter;
+			    if(`menuItem -q -cb bbSelectNodeFilterFieldsCheckBox`)
+			    	$filterTemp += $fieldFilter;
+			    if(`menuItem -q -cb bbSelectNodeFilterDesireCombinerCheckBox`)
+			    	$filterTemp += $bbCombineDesiresFilter;
+			  	if(`menuItem -q -cb bbSelectNodeFilterParticlesCheckBox`)
+			  	   	$filterTemp += $particleFilter;
+
+			  	// no check box visible?   	-> create unmatchable filter to display nothing
+			  	if ($filterTemp == "")
+			  		outlinerEditor -edit -filter unmatchableFilter  bbSelectNodeEditor;
+			  	else
+			  	{
+			  		delete selectNodeFilter;
+			  		eval("itemFilter "+$filterTemp+" selectNodeFilter");
+			  		outlinerEditor -edit -filter selectNodeFilter bbSelectNodeEditor;
+			  	}
+			}
+			break;
+
+		// attach filter to inputs and outputs of connection frames
+		case "currentNode":
+			{
+				//	outlinerEditor -edit -filter selectNodeFilter 			bbSelectNodeEditor;
+
+				string $nodeType = eval ("nodeType "+$currentNode);
+
+				// extra treatment for particle nodes
+				if ($nodeType == "transform")
+				{
+					string $nodes[] = `listRelatives -shapes $currentNode`;
+					$nodeType = eval("nodeType "+$nodes[0]);
+				}
+
+				// extra treatment for fields
+				if (eval ("gmatch "+ $nodeType + "\"*Field\"") )
+	    				$nodeType = "field";
+
+	    		// attach speficic filter to outlineer
+				switch ($nodeType)
+				{
+					case "bbSteeringDesireField":
+						outlinerEditor -edit -filter inputNotConnectedSteeringDesireFilter  bbInputNotConnectedEditor;
+						outlinerEditor -edit -filter inputConnectedSteeringDesireFilter     bbInputConnectedEditor;
+						outlinerEditor -edit -filter outputNotConnectedSteeringDesireFilter bbOutputNotConnectedEditor;
+						outlinerEditor -edit -filter outputConnectedSteeringDesireFilter	bbOutputConnectedEditor;
+					 break;
+
+					case "bbCombineDesiresField":
+
+						// delete filter to be updated
+						delete notCurrentNodeFilter;
+						delete inputConnectableCombineDesiresFilter;
+						delete inputNotConnectedCombineDesiresFilter;
+						delete outputConnectableCombineDesiresFilter;
+						delete outputNotConnectedCombineDesiresFilter;
+
+						// recreate filter with new settings
+						itemFilter -t 			"bbConnectionEditorFilter"
+								   -byName 		$currentNode
+								   -negate		true
+								  	notCurrentNodeFilter;
+
+						itemFilter	-t 			"bbConnectionEditorFilter"
+									-intersect 	notCurrentNodeFilter inputAllConnectableCombineDesiresFilter
+									inputConnectableCombineDesiresFilter;
+
+						itemFilter	-t 			"bbConnectionEditorFilter"
+									-difference inputConnectableCombineDesiresFilter inputConnectedCombineDesiresFilter
+									inputNotConnectedCombineDesiresFilter;
+
+						itemFilter	-t 			"bbConnectionEditorFilter"
+									-intersect 	notCurrentNodeFilter outputAllConnectableCombineDesiresFilter
+									outputConnectableCombineDesiresFilter;
+
+						itemFilter	-t 			"bbConnectionEditorFilter"
+									-difference outputConnectableCombineDesiresFilter outputConnectedCombineDesiresFilter
+									outputNotConnectedCombineDesiresFilter;
+
+
+
+						outlinerEditor -edit -filter inputNotConnectedCombineDesiresFilter  bbInputNotConnectedEditor;
+						outlinerEditor -edit -filter inputConnectedCombineDesiresFilter     bbInputConnectedEditor;
+						outlinerEditor -edit -filter outputNotConnectedCombineDesiresFilter bbOutputNotConnectedEditor;
+						outlinerEditor -edit -filter outputConnectedCombineDesiresFilter	bbOutputConnectedEditor;
+					 break;
+
+					case "particle":
+						outlinerEditor -edit -filter inputNotConnectedParticleFilter  	bbInputNotConnectedEditor;
+						outlinerEditor -edit -filter inputConnectedParticleFilter     	bbInputConnectedEditor;
+						outlinerEditor -edit -filter outputNotConnectedParticleFilter 	bbOutputNotConnectedEditor;
+						outlinerEditor -edit -filter outputConnectedParticleFilter		bbOutputConnectedEditor;
+					 break;
+					case "nParticle":
+						outlinerEditor -edit -filter inputNotConnectedNParticleFilter  	bbInputNotConnectedEditor;
+						outlinerEditor -edit -filter inputConnectedNParticleFilter     	bbInputConnectedEditor;
+						outlinerEditor -edit -filter outputNotConnectedNParticleFilter 	bbOutputNotConnectedEditor;
+						outlinerEditor -edit -filter outputConnectedNParticleFilter		bbOutputConnectedEditor;
+					 break;
+
+					case "field":
+						outlinerEditor -edit -filter inputNotConnectedFieldFilter  	bbInputNotConnectedEditor;
+						outlinerEditor -edit -filter inputConnectedFieldFilter     	bbInputConnectedEditor;
+						outlinerEditor -edit -filter outputNotConnectedFieldFilter 	bbOutputNotConnectedEditor;
+						outlinerEditor -edit -filter outputConnectedFieldFilter		bbOutputConnectedEditor;
+					break;
+
+				   	default:
+					   	outlinerEditor -edit -filter unmatchableFilter	bbInputNotConnectedEditor;
+						outlinerEditor -edit -filter unmatchableFilter 	bbInputConnectedEditor;
+						outlinerEditor -edit -filter unmatchableFilter	bbOutputNotConnectedEditor;
+						outlinerEditor -edit -filter unmatchableFilter 	bbOutputConnectedEditor;
+				   	 break;
+				}
+			}
+			break;
+	}
+}
+
+//*********************************************************************************
+global proc bbUpdateHyperGraph()
+{
+	global string $bbCurrentNode;
+	global string $bbCurrentNodeType;
+	global string $bbCurrentHGNode;
+
+
+//	if ((`menuItem -q -radioButton bbHyperGraphFocusSelected`)||
+//		(($bbCurrentHGNode =="")&&($bbCurrentNodeType!="particle")))
+//	{
+		select -r $bbCurrentNode;
+		hyperGraph -e -dn $bbCurrentNode bbHyperGraph;
+		hyperGraph -e -fg bbHyperGraph;
+//	}
+//	else
+//	{
+//		if (`menuItem -q -radioButton bbHyperGraphStickToParticle`)
+//		{
+//			print ("\n---"+$bbCurrentHGNode);
+//
+//			if ($bbCurrentNodeType==`particle`)
+//				$bbCurrentHGNode = $bbCurrentNode;
+
+//			select -r $bbCurrentHGNode;
+//			hyperGraph -e -dn $bbCurrentHGNode bbHyperGraph;
+//			hyperGraph -e -fg bbHyperGraph;
+//		 }
+//	}
+}
+
+//*********************************************************************************
+
+global proc string[] bbGetNodeAttributesByType(string $nodeType, string $mode)
+{
+	string $attributes[];
+
+	switch($mode)
+	{
+		case "in":
+		{
+			switch ($nodeType)
+			{
+				case "bbSteeringDesireField": $attributes = {"inputData","inputPoint","bbInputCurve","inputMesh","inputSurface"}; break;
+				case "bbCombineDesiresField": $attributes = {"inputForce"};break;
+				case "particle": 		 $attributes = {"inputForce"};break;
+				case "nParticle": 		 $attributes = {"inputForce"};break;
+				case "field": 			 $attributes = {"inputData"};break;
+			}
+		}
+		break;
+
+		case "out":
+		{
+			switch ($nodeType)
+			{
+				case "bbSteeringDesireField": $attributes = {"outputForce"}; break;
+				case "bbCombineDesiresField": $attributes = {"outputForce"};	break;
+				case "particle": 		 $attributes = {"fieldData"};	break;
+				case "nParticle": 		 $attributes = {"fieldData"};	break;
+				case "field": 			 $attributes = {"outputForce"};	break;
+			}
+		}
+		break;
+	}
+
+	return $attributes;
+}
+
+//*********************************************************************************
+// get all nodes attached to the specified attributes
+global proc string[] allConnectedFilterProc(string $mode,  string $nodeType, string $name[])
+{
+	string $conNodes[];
+	string $attribute;
+	string $attributes[];
+	global string $bbCurrentNode;
+
+	$attributes = bbGetNodeAttributesByType($nodeType, $mode);
+
+	for($attribute in $attributes)
+	{
+		// build attribute string
+		string $attr = $bbCurrentNode+"."+$attribute;
+
+		// get connected nodes for current attribute
+		string $currentAttrNodes[] = singleConnectedFilterProc($mode, $attr, {""});
+		string $x;
+
+		// add connected nodes to all connected nodes
+		for ($x in $currentAttrNodes)
+			$conNodes[size($conNodes)] = $x;
+	}
+
+	// return all connected nodes
+	return $conNodes;
+}
+
+//*********************************************************************************
+
+global proc string[] singleConnectedFilterProc(string $mode, string $attribute, string $name[] )
+{
+  	// check if attribute exists
+  	if (! `objExists $attribute`)
+  	{
+    	return {""};
+   	 	quit;
+  	}
+
+  	// get list of nodes connected to attribute
+  	string $plugs[];
+
+  	switch($mode)
+	{
+		case "in": $plugs = `listConnections -p true -s true -d false $attribute`; break;
+		case "out": $plugs = `listConnections -p true -s false -d true $attribute`; break;
+	}
+
+
+  	for ($i = 0; $i < size($plugs); $i++)
+	{
+	    string $plug = $plugs[$i];
+	    string $attr = match("^.*[.]",$plug);
+	    string $attr = substring($attr,1,size($attr)-1);
+	    $plugs[$i] = $attr;
+	}
+
+ 	return $plugs;
+}
+
+//*********************************************************************************
+global proc bbConnectElements(string $mode, string $connectionSelect)
+{
+	// get elements to connect
+	string $tcE[] = `selectionConnection -q -object $connectionSelect`;
+
+	// are elements for disconnnection selected?
+	if (!(($tcE[0]=="")&&(size($tcE)==0)))
+	{
+		global string $bbCurrentNode;
+		global string $bbCurrentNodeType;
+
+		// get elements currently connected
+		string $cE[] = allConnectedFilterProc($mode, $bbCurrentNodeType, {""});
+
+		// merge the arrays
+		string $x;
+		for ($x in $tcE)
+			$cE[size($cE)] = $x;
+
+		// delete all current connections
+		bbDeleteConnections($mode, $bbCurrentNode, bbGetNodeAttributesByType($bbCurrentNodeType, $mode));
+
+		// connect the merged array
+		string $shape;
+		string $cE[] = sort($cE);
+		int $cENum = size($cE);
+
+		switch ($mode)
+		{
+			case "in":	for ($index=0;$index<$cENum;$index++)
+						{
+							$shape = getShape($cE[$index]);
+							bbConnect $shape $bbCurrentNode $index;
+						}
+						break;
+			case "out":	for ($index=0;$index<$cENum;$index++)
+						{
+							$shape = getShape($cE[$index]);
+							bbConnect $bbCurrentNode $shape $index;
+						}
+						break;
+		}
+
+		bbUpdateUI;
+
+	}
+}
+
+//*********************************************************************************
+global proc bbDisconnectElements( string $mode, string $selectionCon)
+{
+	// get elements to disconnnect
+	string $dE[] = `selectionConnection -q -object $selectionCon`;
+
+	// are elements for disconnnection selected?
+	if (!(($dE[0]=="")&&(size($dE)==0)))
+	{
+		global string $bbCurrentNode;
+		global string $bbCurrentNodeType;
+
+		// get shapes of elements to disconnect
+		string $dES[];
+		string $x;
+
+		for ($x in $dE)
+			$dES[size($dES)] = getShape($x);
+
+		// get  connnected elements
+		string $cE[] = allConnectedFilterProc($mode, $bbCurrentNodeType, {""});
+
+		// difference  the two arrays to get elements that will be connected after disconnect
+		string $cE[] = subtractStringArray($dES,$cE);
+
+	//	print "\n after disconnection\n"; print $cE;
+
+		// delete all current connections
+		bbDeleteConnections($mode, $bbCurrentNode, bbGetNodeAttributesByType($bbCurrentNodeType, $mode));
+
+		// connect the merged array
+		string $cE[] = sort($cE);
+
+		int $index;
+		int $cENum = size($cE);
+
+		switch ($mode)
+		{
+			case "in":	for ($index=0;$index<$cENum;$index++)
+							bbConnect $cE[$index] $bbCurrentNode $index;
+				break;
+
+		   case "out":	for ($index=0;$index<$cENum;$index++)
+							bbConnect $bbCurrentNode $cE[$index] $index;
+				break;
+		}
+	}
+
+	bbUpdateUI();
+//	select $node;
+}
+
+//*********************************************************************************
+global proc bbDeleteConnections(string $mode, string $node, string $attributes[])
+{
+	string $attribute;
+
+	for ($attribute in $attributes)
+	{
+		string $nodeAttribute = ($node + "." + $attribute);
+
+		// get connected elements pairs
+		string $cep[] = eval("listConnections -p true -c true "+$nodeAttribute);
+		int $cepNum = size($cep);
+
+		// disconnect element pairs
+		int $index;
+		switch ($mode)
+		{
+			case "in":	for ($index=1; $index<$cepNum; $index += 2)
+							disconnectAttr $cep[$index] $cep[$index-1];
+				break;
+
+			case "out":	for ($index=0; $index<$cepNum; $index += 2)
+							disconnectAttr $cep[$index] $cep[$index+1];
+				break;
+		}
+	}
+}
+
+//*********************************************************************************
+global proc string getShape( string $xform )
+{
+  string $shapes[];
+  $shapes[0] = $xform;
+
+  // If given node is not a transform, assume it is a shape
+  // and pass it through.
+  if ( "transform" == `nodeType $xform` )
+  {
+    $shapes = `listRelatives  -shapes $xform`;
+  }
+
+  return $shapes[0];
+}
+
+//*********************************************************************************
+global proc bbCreateFilter()
+{
+	// select node filter
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				selectNodeFilter;
+
+	// unmatchable filter
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-byName 	"satanislord666thenumberofthebeasthailantichristiguessnoonecallstheirnodesthiswaywellatleastihopeso"
+				unmatchableFilter;
+
+	// notNode filter
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-negate		true
+				notCurrentNodeFilter;
+
+
+	// filter bbSteeringDesire
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"in\"  bbSteeringDesireField")
+				inputConnectedSteeringDesireFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"out\"  bbSteeringDesireField")
+				outputConnectedSteeringDesireFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	particle
+				-byType     nParticle
+				-byType 	nurbsSurface
+				-byType 	nurbsCurve
+				-byType 	locator
+				-byType 	mesh
+				inputAllConnectableSteeringDesireFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	particle
+				-byType     nParticle
+				-byType 	bbCombineDesiresField
+				outputAllConnectableSteeringDesireFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference inputAllConnectableSteeringDesireFilter inputConnectedSteeringDesireFilter
+				inputNotConnectedSteeringDesireFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference outputAllConnectableSteeringDesireFilter outputConnectedSteeringDesireFilter
+				outputNotConnectedSteeringDesireFilter;
+
+	// filter bbCombineDesires
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"in\"  bbCombineDesiresField")
+				inputConnectedCombineDesiresFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"out\"  bbCombineDesiresField")
+				outputConnectedCombineDesiresFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	bbSteeringDesireField
+				-byType 	airField
+				-byType 	dragField
+				-byType 	gravityField
+				-byType 	newtonField
+				-byType 	radialField
+				-byType 	turbulenceField
+				-byType 	uniformField
+				-byType 	vortexField
+				-byType 	volumeAxisField
+				-byType 	bbCombineDesiresField
+				inputAllConnectableCombineDesiresFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	particle
+				-byType     nParticle
+				-byType 	bbCombineDesiresField
+				outputAllConnectableCombineDesiresFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-intersect 	notCurrentNodeFilter inputAllConnectableCombineDesiresFilter
+				inputConnectableCombineDesiresFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference inputConnectableCombineDesiresFilter inputConnectedCombineDesiresFilter
+				inputNotConnectedCombineDesiresFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-intersect 	notCurrentNodeFilter outputAllConnectableCombineDesiresFilter
+				outputConnectableCombineDesiresFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference outputConnectableCombineDesiresFilter outputConnectedCombineDesiresFilter
+				outputNotConnectedCombineDesiresFilter;
+
+	// filter particle
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"in\" particle")
+				inputConnectedParticleFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"out\" particle")
+				outputConnectedParticleFilter;
+
+	// filter nParticle
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"in\" nParticle")
+				inputConnectedNParticleFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"out\" nParticle")
+				outputConnectedNParticleFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	bbSteeringDesireField
+				-byType 	airField
+				-byType 	dragField
+				-byType 	gravityField
+				-byType 	newtonField
+				-byType 	radialField
+				-byType 	turbulenceField
+				-byType 	uniformField
+				-byType 	vortexField
+				-byType 	volumeAxisField
+				-byType 	bbCombineDesiresField
+				inputAllConnectableParticleFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	bbSteeringDesireField
+				-byType 	airField
+				-byType 	dragField
+				-byType 	gravityField
+				-byType 	newtonField
+				-byType 	radialField
+				-byType 	turbulenceField
+				-byType 	uniformField
+				-byType 	vortexField
+				-byType 	volumeAxisField
+				outputAllConnectableParticleFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	bbSteeringDesireField
+				-byType 	airField
+				-byType 	dragField
+				-byType 	gravityField
+				-byType 	newtonField
+				-byType 	radialField
+				-byType 	turbulenceField
+				-byType 	uniformField
+				-byType 	vortexField
+				-byType 	volumeAxisField
+				-byType 	bbCombineDesiresField
+				inputAllConnectableNParticleFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	bbSteeringDesireField
+				-byType 	airField
+				-byType 	dragField
+				-byType 	gravityField
+				-byType 	newtonField
+				-byType 	radialField
+				-byType 	turbulenceField
+				-byType 	uniformField
+				-byType 	vortexField
+				-byType 	volumeAxisField
+				outputAllConnectableNParticleFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference inputAllConnectableParticleFilter inputConnectedParticleFilter
+				inputNotConnectedParticleFilter;
+
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference outputAllConnectableParticleFilter outputConnectedParticleFilter
+				outputNotConnectedParticleFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference inputAllConnectableNParticleFilter inputConnectedNParticleFilter
+				inputNotConnectedNParticleFilter;
+
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference outputAllConnectableNParticleFilter outputConnectedNParticleFilter
+				outputNotConnectedNParticleFilter;
+
+	// filter fields
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"in\" field")
+				inputConnectedFieldFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+			   	-secondScript ("allConnectedFilterProc \"out\" field")
+				outputConnectedFieldFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	particle
+				-byType     nParticle
+				inputAllConnectableFieldFilter;
+
+	itemFilter 	-t 			"bbConnectionEditorFilter"
+				-byType 	particle
+				-byType     nParticle
+				-byType 	bbCombineDesiresField
+				outputAllConnectableFieldFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference inputAllConnectableFieldFilter inputConnectedFieldFilter
+				inputNotConnectedFieldFilter;
+
+	itemFilter	-t 			"bbConnectionEditorFilter"
+				-difference outputAllConnectableFieldFilter outputConnectedFieldFilter
+				outputNotConnectedFieldFilter;
+
+}
+
+//*********************************************************************************
+global proc string[] subtractStringArray (string $array1[], string $array2[])
+{
+	string $x;
+	string $y;
+	string $newArray[];
+	int $itemFound = 0;
+
+
+	for ($x in $array2)
+	{
+		$itemFound = 0;
+		for ($y in $array1)
+		{
+			if ($x == $y) {$itemFound = 1;}
+		}
+		if ($itemFound == 0) {$newArray[size($newArray)] = $x;}
+	}
+
+	return ($newArray);
+}
+
+//*********************************************************************************
+
+global proc bbSetConnectionEditorLayout(string $mode)
+{
+	switch($mode)
+	{
+		case "both":
+			control -e -visible true   bbInArrowPicture;
+			control -e -visible true   bbOutArrowPicture;
+			control -e -visible true   bbInputNotConnectedFrameLayout;
+			control -e -visible true   bbInputConnectedFrameLayout;
+			control -e -visible true   bbInputNC2CButton;
+			control -e -visible true   bbInputC2NCButton;
+			control -e -visible true   bbOutputNotConnectedFrameLayout;
+			control -e -visible true   bbOutputConnectedFrameLayout;
+			control -e -visible true   bbOutputNC2CButton;
+			control -e -visible true   bbOutputC2NCButton;
+
+		 	formLayout -edit
+		 	    -attachPosition	bbCurrentNodeFrameLayout 		"top"  	1 40
+		    	-attachPosition bbCurrentNodeFrameLayout        "left" 	1 30
+		    	-attachNone		bbCurrentNodeFrameLayout        "bottom"
+		    	-attachPosition	bbCurrentNodeFrameLayout 	    "right" 1 82
+
+		    	-attachPosition	bbArrowPicture 					"top"  1 45
+		    	-attachNone		bbArrowPicture      			"left"
+		    	-attachNone		bbArrowPicture     			 	"bottom"
+		    	-attachControl	bbArrowPicture	    			"right" 12 bbCurrentNodeFrameLayout
+
+		     	-attachNone		bbInArrowPicture 				"top"
+		    	-attachPosition	bbInArrowPicture    			"left" 1 70
+		    	-attachControl	bbInArrowPicture    			"bottom" 1 bbCurrentNodeFrameLayout
+		    	-attachNone		bbInArrowPicture    			"right"
+
+		    	-attachControl	bbOutArrowPicture 	"top"  		1 	bbCurrentNodeFrameLayout
+		    	-attachPosition	bbOutArrowPicture   "left" 		1 70
+		    	-attachNone		bbOutArrowPicture   "bottom"
+		    	-attachNone		bbOutArrowPicture   "right"
+
+		     	-attachForm		bbInputNotConnectedFrameLayout	"top"    5
+		    	-attachForm		bbInputNotConnectedFrameLayout  "left"   5
+		    	-attachControl	bbInputNotConnectedFrameLayout  "bottom" 20 bbCurrentNodeFrameLayout
+		    	-attachPosition	bbInputNotConnectedFrameLayout  "right"  1 	42
+
+		    	-attachForm		bbInputConnectedFrameLayout		"top"    5
+		    	-attachPosition	bbInputConnectedFrameLayout     "left"   1 	58
+		    	-attachControl	bbInputConnectedFrameLayout     "bottom" 1 	bbInArrowPicture
+		    	-attachForm	  	bbInputConnectedFrameLayout		"right"  5
+
+		    	-attachForm		bbInputNC2CButton 		 		"top"    25
+		    	-attachControl 	bbInputNC2CButton        		"left"   5 	bbInputNotConnectedFrameLayout
+		    	-attachNone	  	bbInputNC2CButton        		"bottom"
+		    	-attachControl	bbInputNC2CButton        		"right"  5 	bbInputConnectedFrameLayout
+
+		    	-attachControl	bbInputC2NCButton 		 		"top"    2 	bbInputNC2CButton
+		    	-attachControl 	bbInputC2NCButton        		"left"   5 	bbInputNotConnectedFrameLayout
+		    	-attachNone	  	bbInputC2NCButton        		"bottom"
+		    	-attachControl	bbInputC2NCButton        		"right"  5 	bbInputConnectedFrameLayout
+
+		    	-attachControl	bbOutputNotConnectedFrameLayout	"top"    20 bbCurrentNodeFrameLayout
+		    	-attachForm	  	bbOutputNotConnectedFrameLayout "left"   5
+		    	-attachForm	  	bbOutputNotConnectedFrameLayout "bottom" 5
+		    	-attachPosition	bbOutputNotConnectedFrameLayout "right"  1 	42
+
+		    	-attachControl	bbOutputConnectedFrameLayout 	"top"    1 	bbOutArrowPicture
+		    	-attachPosition bbOutputConnectedFrameLayout    "left"   1 	58
+		    	-attachForm	  	bbOutputConnectedFrameLayout    "bottom" 5
+		    	-attachForm	  	bbOutputConnectedFrameLayout    "right"  5
+
+		    	-attachControl	bbOutputNC2CButton 		 		"top"    25 bbOutArrowPicture
+		    	-attachControl 	bbOutputNC2CButton        		"left"   5 	bbOutputNotConnectedFrameLayout
+		    	-attachNone	  	bbOutputNC2CButton        		"bottom"
+		    	-attachControl	bbOutputNC2CButton        		"right"  5 	bbOutputConnectedFrameLayout
+
+		    	-attachControl	bbOutputC2NCButton 		 		"top"    2 	bbOutputNC2CButton
+		    	-attachControl 	bbOutputC2NCButton        		"left"   5 	bbOutputNotConnectedFrameLayout
+		    	-attachNone	  	bbOutputC2NCButton        		"bottom"
+		    	-attachControl	bbOutputC2NCButton        		"right"  5 	bbOutputConnectedFrameLayout
+		 	bbMasterFormLayout;
+
+		break;
+
+		case "incoming":
+			control -e -visible true   bbInArrowPicture;
+			control -e -visible false   bbOutArrowPicture;
+			control -e -visible true   bbInputNotConnectedFrameLayout;
+			control -e -visible true   bbInputConnectedFrameLayout;
+			control -e -visible true   bbInputNC2CButton;
+			control -e -visible true   bbInputC2NCButton;
+			control -e -visible false   bbOutputNotConnectedFrameLayout;
+			control -e -visible false   bbOutputConnectedFrameLayout;
+			control -e -visible false   bbOutputNC2CButton;
+			control -e -visible false   bbOutputC2NCButton;
+
+		 	formLayout -edit
+		 	    -attachNone		bbCurrentNodeFrameLayout 		"top"
+		    	-attachPosition bbCurrentNodeFrameLayout        "left" 	1 30
+		    	-attachForm		bbCurrentNodeFrameLayout        "bottom" 5
+		    	-attachPosition	bbCurrentNodeFrameLayout 	    "right" 1 82
+
+		    	-attachNone		bbArrowPicture 					"top"
+		    	-attachNone		bbArrowPicture      			"left"
+		    	-attachForm		bbArrowPicture     			 	"bottom" 31
+		    	-attachControl	bbArrowPicture	    			"right"  12 bbCurrentNodeFrameLayout
+
+		     	-attachNone		bbInArrowPicture 				"top"
+		    	-attachPosition	bbInArrowPicture    			"left" 	 1 70
+		    	-attachControl	bbInArrowPicture    			"bottom" 1 bbCurrentNodeFrameLayout
+		    	-attachNone		bbInArrowPicture    			"right"
+
+		     	-attachForm		bbInputNotConnectedFrameLayout	"top"    5
+		    	-attachForm		bbInputNotConnectedFrameLayout  "left"   5
+		    	-attachControl	bbInputNotConnectedFrameLayout  "bottom" 20 bbCurrentNodeFrameLayout
+		    	-attachPosition	bbInputNotConnectedFrameLayout  "right"  1 	42
+
+		    	-attachForm		bbInputConnectedFrameLayout		"top"    5
+		    	-attachPosition	bbInputConnectedFrameLayout     "left"   1 	58
+		    	-attachControl	bbInputConnectedFrameLayout     "bottom" 1 	bbInArrowPicture
+		    	-attachForm	  	bbInputConnectedFrameLayout		"right"  5
+
+		    	-attachForm		bbInputNC2CButton 		 		"top"    25
+		    	-attachControl 	bbInputNC2CButton        		"left"   5 	bbInputNotConnectedFrameLayout
+		    	-attachNone	  	bbInputNC2CButton        		"bottom"
+		    	-attachControl	bbInputNC2CButton        		"right"  5 	bbInputConnectedFrameLayout
+
+		    	-attachControl	bbInputC2NCButton 		 		"top"    2 	bbInputNC2CButton
+		    	-attachControl 	bbInputC2NCButton        		"left"   5 	bbInputNotConnectedFrameLayout
+		    	-attachNone	  	bbInputC2NCButton        		"bottom"
+		    	-attachControl	bbInputC2NCButton        		"right"  5 	bbInputConnectedFrameLayout
+		 	bbMasterFormLayout;
+
+			break;
+
+		case "outgoing":
+			control -e -visible false   bbInArrowPicture;
+			control -e -visible true   bbOutArrowPicture;
+			control -e -visible false   bbInputNotConnectedFrameLayout;
+			control -e -visible false   bbInputConnectedFrameLayout;
+			control -e -visible false   bbInputNC2CButton;
+			control -e -visible false   bbInputC2NCButton;
+			control -e -visible true   bbOutputNotConnectedFrameLayout;
+			control -e -visible true   bbOutputConnectedFrameLayout;
+			control -e -visible true   bbOutputNC2CButton;
+			control -e -visible true   bbOutputC2NCButton;
+
+			formLayout -edit
+		 	    -attachForm		bbCurrentNodeFrameLayout 		"top"  	5
+		    	-attachPosition bbCurrentNodeFrameLayout        "left" 	1 30
+		    	-attachNone		bbCurrentNodeFrameLayout        "bottom"
+		    	-attachPosition	bbCurrentNodeFrameLayout 	    "right" 1 82
+
+		    	-attachForm		bbArrowPicture 					"top"  31
+		    	-attachNone		bbArrowPicture      			"left"
+		    	-attachNone		bbArrowPicture     			 	"bottom"
+		    	-attachControl	bbArrowPicture	    			"right" 12 bbCurrentNodeFrameLayout
+
+		    	-attachControl	bbOutArrowPicture 	"top"  		1 	bbCurrentNodeFrameLayout
+		    	-attachPosition	bbOutArrowPicture   "left" 		1 70
+		    	-attachNone		bbOutArrowPicture   "bottom"
+		    	-attachNone		bbOutArrowPicture   "right"
+
+		    	-attachControl	bbOutputNotConnectedFrameLayout	"top"    20 bbCurrentNodeFrameLayout
+		    	-attachForm	  	bbOutputNotConnectedFrameLayout "left"   5
+		    	-attachForm	  	bbOutputNotConnectedFrameLayout "bottom" 5
+		    	-attachPosition	bbOutputNotConnectedFrameLayout "right"  1 	42
+
+		    	-attachControl	bbOutputConnectedFrameLayout 	"top"    1 	bbOutArrowPicture
+		    	-attachPosition bbOutputConnectedFrameLayout    "left"   1 	58
+		    	-attachForm	  	bbOutputConnectedFrameLayout    "bottom" 5
+		    	-attachForm	  	bbOutputConnectedFrameLayout    "right"  5
+
+		    	-attachControl	bbOutputNC2CButton 		 		"top"    25 bbOutArrowPicture
+		    	-attachControl 	bbOutputNC2CButton        		"left"   5 	bbOutputNotConnectedFrameLayout
+		    	-attachNone	  	bbOutputNC2CButton        		"bottom"
+		    	-attachControl	bbOutputNC2CButton        		"right"  5 	bbOutputConnectedFrameLayout
+
+		    	-attachControl	bbOutputC2NCButton 		 		"top"    2 	bbOutputNC2CButton
+		    	-attachControl 	bbOutputC2NCButton        		"left"   5 	bbOutputNotConnectedFrameLayout
+		    	-attachNone	  	bbOutputC2NCButton        		"bottom"
+		    	-attachControl	bbOutputC2NCButton        		"right"  5 	bbOutputConnectedFrameLayout
+		 	bbMasterFormLayout;
+
+			break;
+	}
+
+}
+
+global proc bbUpdateUI()
+{
+	// selectionCollection is updated when nodes are created or deleted
+	// so create something and delete it at once
+
+	string $locator[] = `spaceLocator`;
+	delete $locator;
+}

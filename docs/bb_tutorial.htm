@@ -1,0 +1,202 @@
+<html>
+<head>
+<title>bRAINbUGZ Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="inst"></a>&nbsp;quickstart 
+      tutorial</font></td>
+  </tr>
+</table>
+<p>This tutorial will help to get you started with brainbugz, after you are finished, 
+  you will know the basic concepts on how to create steering desires, combine 
+  different steering desires and fields and how to establish a working node connection 
+  setup.<br>
+  It is assumed you are familar with the basic creation and setup of particle 
+  systems and creation of geometry. Please consult the Maya docs if any questions 
+  appear on this.</p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7">&nbsp;<font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF">preparations</font></td>
+    </tr>
+  </table>
+<p> - switch the work area from &quot;perspective&quot;- to &quot;top&quot;-view<br>
+  - create a particle object &quot;bugs&quot; using the particle tool (about 60 
+  -70 particle will be sufficient)<br>
+  - create a polyCube &quot;terrarium&quot;, scale it so that the particles are 
+  inside the cube and there is some space for them to move<br>
+  - make the &quot;bugs&quot; collide with the &quot;terrarium&quot;<br>
+</p>
+<p>Your work area should somewhat look like this:</p>
+<p><img src="images/tut_prepWorkArea.gif" width="637" height="527" border="1"></p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>create 
+        brainbugz nodes</font></td>
+    </tr>
+  </table>
+<p>- create 3 steering desire nodes and 1 combine desires node using the &quot;brainbugz&quot; 
+  menu:</p>
+<p><img src="images/tut_bbMenu.gif" width="214" height="118" border="1"> </p>
+<p>- rename the steeringDesire nodes to &quot;bugsCohesion&quot;, &quot;bugsAlignment&quot;, 
+  &quot;bugsSeparation&quot; <br>
+  - rename the combineDesires node to &quot;bugsFlocking&quot;</p>
+<p><img src="images/tut_NodeRename.gif" width="200" height="199" border="1"></p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>connection 
+        setup </font></td>
+    </tr>
+  </table>
+<p>- start the brainbugz &quot;Connection Editor&quot; using the brainbugz menu, 
+  this will help us to do all the necessary connection work</p>
+<p><img src="images/tut_ConnEdit.gif" width="585" height="432" border="1"></p>
+<p>You may open the &quot;Connection Graph&quot; by clicking on the small arrow, 
+  this will show you the current connections made, starting with the node selected 
+  in the &quot;Select Node&quot; outliner</p>
+<p>The basic rules for connection editing:<br>
+  - the connection graph has got to start from a particle node, and it has got 
+  to end there<br>
+  - all steering desires and fields must have incoming connections from a particle 
+  node<br>
+  - steering desires and fields outgoing connetctions can be combined using combine 
+  nodes<br>
+  - combine nodes can be combined with other combine nodes</p>
+<p>- connect the particle node with the steering desires (select the particle 
+  node &quot;bugs&quot;, all connectable nodes for incoming and outgoing connections 
+  will be displayed in the relative outliner, connect the 3 steering desires at 
+  &quot;outgoing connections&quot;)</p>
+<p><img src="images/tut_ConnEdit2.gif" width="568" height="669"></p>
+<p>- select the &quot;bugsFlocking&quot; combine desires node and connect the 
+  steering desires to it (incoming) <br>
+  (image shows &quot;Connection Mode - Incoming&quot;)</p>
+<p><img src="images/tut_ConnEdit3.gif" width="568" height="490"></p>
+<p>- the final step in connection setup is to connect &quot;bugsFlocking&quot; 
+  outgoing connection to the &quot;bugs&quot; particle node incoming connection</p>
+<p><img src="images/tut_ConnEdit4.gif" width="546" height="217" border="1"></p>
+<p>- close the &quot;Connection Editor&quot; as we are finished with our setup</p>
+<p>So, what did we just do? We created 3 Steering Desires, that will be combined 
+  to 1 higher level desire and established all connection necessary to make the 
+  system work. Now we have got to set the attributes for the different steering 
+  desires.</p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>edit 
+        steering desires</font></td>
+    </tr>
+  </table>
+<p>- select the &quot;bugsAlignment&quot; steering desire, open the Attribute 
+  Editor<br>
+  - set &quot;Steering Desire&quot; to &quot;Neighbor - Alignment&quot;</p>
+<p><img src="images/tut_aeSD1.gif" width="401" height="345" border="1"></p>
+<p>- open &quot;General Bug Attributes&quot;<br>
+  - set &quot;Sensor Range&quot; to &quot;1.0&quot;<br>
+  - set &quot;Senor Angle&quot; to &quot;160&quot;</p>
+<p><img src="images/tut_aeSD2.gif" width="382" height="346" border="1"></p>
+<p>- select &quot;bugsCohesion&quot;<br>
+  - set &quot;Steering Desire&quot; to &quot;Neighbor - Cohesion&quot; <br>
+  - set &quot;Sensor Range&quot; to &quot;1.8&quot;<br>
+  - set &quot;Senor Angle&quot; to &quot;170&quot;</p>
+<p>- select &quot;bugsSeparation&quot;<br>
+  - set &quot;Steering Desire&quot; to &quot;Neighbor - Separation&quot; <br>
+  - set &quot;Sensor Range&quot; to &quot;0.5&quot;<br>
+  - set &quot;Senor Angle&quot; to &quot;115</p>
+<p>Alignment will force the &quot;bugs&quot; to align themselves to nearby (as 
+  specified by the field of view) bugs.<br>
+  Cohesion will force the &quot;bugs&quot; to move in the direction of nearby 
+  bugs.<br>
+  Separation will prevent the &quot;bugs&quot; from crowding together with nearby 
+  bugs.</p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>combine 
+        desires</font></td>
+    </tr>
+  </table>
+<p>Now we will combine these simple steering desires in one higher level desire 
+  &quot;bugsFlocking&quot; </p>
+<p>- select bbCombineDesires node &quot;bugsFlocking&quot;<br>
+  - set &quot;Combine Mode&quot; to &quot;Priority&quot;<br>
+  - set the priorities as shown in the image</p>
+<p><img src="images/tut_aeCD1.gif" width="351" height="305" border="1"></p>
+<p>Separation will have the highest priority, only if this produces no result 
+  (because no nearby bugs are in the sensor range), the next desire Alignment 
+  is taken into account. Only if this produces no result Cohesion will be evaluated.<br>
+  Note how we set the different sensor ranges, so the higher priorized desires 
+  don't overrule lower priorized desires.</p>
+<p>Hit &quot;Play&quot; to start the simulation. Nothing happens - why?</p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>setting 
+        initial particle state</font></td>
+    </tr>
+  </table>
+<p>- switch to Component Mode<br>
+  - select the particles &quot;bugs&quot;<br>
+  - open the Component Editor, Load Components</p>
+<p>You see, all the particles have no velocity - as the local coordinate system 
+  of the particles is velocity aligned, the &quot;bugs&quot; don't know where 
+  to look for nearby neighbors. So we have got to change this.</p>
+<p>- set the x-component of the particles velocity to 1 (alternative you can use 
+  other methods to get the particles going)</p>
+<p><img src="images/tut_CompEdit.gif" width="549" height="326" border="1"></p>
+<p>Note: Edit the &quot;Mass&quot; of the particles here, too.</p>
+<p>- start the simulation again</p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>particle 
+        speed clamping</font></td>
+    </tr>
+  </table>
+<p>You'll notice some bugs will get very fast, and some will be very slow or eventually 
+  stop. This can be prevented by speed clamping the particles.</p>
+<p>- select particles &quot;bugs&quot;<br>
+  - select &quot;Clamp Speed Particle&quot; from the brainbugz menu</p>
+<p><img src="images/tut_bbMenu2.gif" width="208" height="127" border="1"></p>
+<p>This will add two attributes &quot;bb Minimum Speed&quot; and &quot;bb Maximum 
+  Speed&quot; as well as a runtime expression to the selected particle node which 
+  will enforce min- and max speed.</p>
+<p>- set &quot;bb Minimum Speed&quot; to &quot;1.0&quot;<br>
+  - set &quot;bb Maximum Speed&quot; to &quot;3.5&quot;</p>
+<p><img src="images/tut_aePa1.gif" width="344" height="337" border="1"></p>
+<p>- start the simulation again, notice the effect</p>
+<p>- experiment with different settings for the steering desires, change combination 
+  mode to &quot;Weights&quot; and change the different weights</p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a> 
+        higher level desire editing</font></td>
+    </tr>
+  </table>
+<p>Let`s make the flock move a little bit more coordinated, eg. it should move 
+  along a path.</p>
+<p>- create a nurbsCurve &quot;path&quot;, this will be the motion path<br>
+  - create a nurbsPlane &quot;targetPlane&quot;, this will be the plane the &quot;bugs&quot; 
+  will be seeking<br>
+  - animate the &quot;targetPlane&quot; along the &quot;path&quot; using &quot;Attach 
+  to Motion Path&quot;</p>
+<p>The work area should look somewhat like this:</p>
+<p><img src="images/tut_pathWorkArea.gif" width="466" height="516" border="1"></p>
+<p>- create steering desire &quot;bugsPlaneArrival&quot;<br>
+  - create combine desires &quot;bugsPathFollowFlocking&quot;<br>
+  - set up the connections using the &quot;Connection Editor&quot; so it matches 
+  the graph below</p>
+<p><img src="images/tut_ConnEdit5.gif" width="619" height="238" border="1"></p>
+<p>- select steering desire &quot;bugsPlaneArrival&quot;<br>
+  - select steering desire &quot;Target - Arrival&quot;<br>
+  - add &quot;targetPlane&quot; to the connected Geometry using the &quot;bb (Dis)Connect 
+  Nodes&quot; window</p>
+<p><img src="images/tut_aeSD3.gif" width="373" height="449" border="1"></p>
+<p> <img src="images/tut_ConnEdit6.gif" width="366" height="180"></p>
+<p>- select bbCombineDesires&quot;bugsPathFollowingFlocking&quot;<br>
+  - set &quot;Combine Mode&quot; to &quot;Weights&quot;<br>
+  - set the weights according to the image below</p>
+<p><img src="images/tut_aeCD2.gif" width="347" height="260" border="1"></p>
+<p>- start simulation<br>
+  - experiment with different weights, different steering desires<br>
+  - enjoy!</p>
+</body>
+</html>

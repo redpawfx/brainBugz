@@ -1,0 +1,355 @@
+<html>
+<head>
+<title>bRAINbUGZ Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366" height="24"><a name="work"></a>&nbsp;<font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF">node 
+      and connection setup</font></td>
+  </tr>
+</table>
+<p>To edit the relations between the different desire nodes and set up a working 
+  behavioural system, you should use the Connection Editor. To start this editor, 
+  choose the item &quot;Connection Editor...&quot; in the brainbugz menu:</p>
+<p><img src="images/selectConnEdit.gif" width="172" height="125" border="1"></p>
+<p>The bb Connection Editor will show up:</p>
+<p><img src="images/tut_ConnEdit.gif" width="585" height="432"></p>
+<table width="98%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+  <tr valign="top"> 
+    <td colspan="2" bordercolor="#666666" bgcolor="#FFFFCC"><b>bb Connection Editor 
+      Menu Items</b></td>
+  </tr>
+  <tr valign="top"> 
+    <td width="13%" height="223"><b>Select Node Filter</b></td>
+    <td width="87%" height="223"> 
+      <p>&quot;Steering Desires&quot;<br>
+        -if active, all bbSteeringDesire nodes in the current scene will be shown 
+        in the &quot;Select Node&quot; outliner</p>
+      <p>&quot;Desire Combiner&quot;<br>
+        -if active, all bbCombineDesires nodes in the current scene will be shown 
+        in the &quot;Select Node&quot; outliner </p>
+      <p>&quot;Particles&quot;<br>
+        -if active, all particle nodes in the current scene will be shown in the 
+        &quot;Select Node&quot; outliner </p>
+      <p>&quot;Fields&quot;<br>
+        -if active, all standard Maya field nodes in the current scene will be 
+        shown in the &quot;Select Node&quot; outliner, these incude &quot;Air&quot;, 
+        &quot;Drag&quot;, &quot;Gravity&quot;, &quot;Newton&quot;, &quot;Radial&quot;, 
+        &quot;Tubulence&quot;, &quot;Uniform&quot;, &quot;Vortex&quot; and &quot;Volume 
+        Axis&quot; </p>
+    </td>
+  </tr>
+  <tr valign="top"> 
+    <td width="13%"><b>Connection Mode</b></td>
+    <td width="87%"> 
+      <p>&quot;Incoming&quot;<br>
+        - if selected, you will only see incoming connections of the currently 
+        selected node<br>
+        - you are only able to change incoming connections, too</p>
+      <p>&quot;Outgoing&quot;<br>
+        - if selected, you will only see outgoing connections of the currently 
+        selected node<br>
+        - you are only able to change outgoing connections, too </p>
+      <p>&quot;Both&quot;<br>
+        - if selected, you will see both incoming and outgoing connections of 
+        the currently selected node<br>
+        - you are only able to change both incoming and outgoing connections, 
+        too <br>
+        - while this display mode gives you full direct control on connection 
+        setup, you may find it a bit overcrowded or confusing at first - therefore 
+        choose the setting you like best</p>
+    </td>
+  </tr>
+  <tr valign="top"> 
+    <td width="13%"><b>Connection Graph</b></td>
+    <td width="87%">
+      <p>&quot;Focus Selected&quot;<br>
+        - the hypergraph in the &quot;Connection Graph&quot; part of the Connection 
+        Editor will focus on the selected node and show its up- and downstream 
+        connections</p>
+      <p>&quot;Stick to Particle&quot;<br>
+        - the hypergraph in the &quot;Connection Graph&quot; part of the Connection 
+        Editor will focus on the specified particle node, this gives you a better 
+        view on the whole connection setup</p>
+      </td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+<p>[this is not necessary any more as everything was automated, use this for references 
+  on the insights]</p>
+<p>A detailed description of the steps required to build the 'brain' of the bugs, 
+  the setup of the bbNodes and connections:</p>
+
+  <table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_ste"></a>&nbsp;steering 
+        desire creation</b></font></td>
+    </tr>
+  </table>
+<p>Steering Desires are the basis of behavioural animation, they tell the individual 
+  bug how to behave. To create a steering desire, create a bbSteeringDesire node 
+  using the <b>Command Line</b> or <b>Script Editor</b>:</p>
+
+  <blockquote> 
+    <table width="297" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">createNode bbSteeringDesire 
+            -n bbSD;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>bbSteeringDesire is a particle field node, so you can use it just like any 
+  other field (Gravity, Vortex etc.) in Maya. You can connect it to your particle 
+  object using MEL:</p>
+<blockquote>
+  
+    <table width="272" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">connectDynamic -f 
+            bbSD particle1;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>Open the Hypergraph, the graph should look somewhat like this:</p>
+
+  <p><img src="images/hg_1.gif" width="532" height="135"></p>
+
+<p>You can now edit steering desire attributes by selecting the bbSD node and 
+  opening the <b>Attribute Editor. </b>For a detailed description of the steering 
+  desire attributes, see <a href="bb_steering.htm">detailed node descriptions</a>.</p>
+<p>You can keep adding bbSteeringDesires by using the above method. Output forces 
+  of the steering desires will be combined linear in the particle object. This 
+  may be suitable in some situation, but to achieve better results other combination 
+  methods must be used.</p>
+
+  <table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_com"></a>&nbsp;combination 
+        of steering desires</b></font></td>
+    </tr>
+  </table>
+
+<p>To combine the output forces of bbSteeringDesire nodes, use the bbCombineForces 
+  node. To create one, use MEL.</p>
+
+  <blockquote> 
+    <table width="288" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">createNode bbCombineForces 
+            -n bbCF;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>Now you have created a bbCombineForces node (bbCF) , it must be connected to 
+  bbSteeringDesire nodes (bbSD). Use the 'bbConnect' command to connect steering 
+  desires outputForce, weight and priority with the force combiner:</p>
+<blockquote>
+ 
+    <table width="190" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">bbConnect bbSD bbCF 
+            0;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>Note: Make sure to use the same array index for all of the connections of one 
+  specific bbSteeringDesire to an bbCombineForces node. This is required so the 
+  bbCombineForces knows, which priority and weight belongs to what force.</p>
+<p>Connect the bbCombineForces outputForce to the particles input force.</p>
+
+  <blockquote> 
+    <table width="268" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">bbConnect bbCF particleShape1 
+            0;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>If you already connected the steering desires to the particle node using the 
+  'connectDynamic' command as described above, delete the connection from the 
+  bbSteeringDesire node to the particle node using the <b>Hypergraph.<br>
+  </b>If the bbSteeringDesire node never was connected to the particle object, 
+  connect it now:</p>
+<blockquote>
+  
+    <table width="269" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">bbConnect particleShape1 
+            bbSD 0;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p><b>Hypergraph</b> should look like this if you connected all the attributes 
+  correctly:</p>
+
+  <p><img src="images/hg_2.gif" width="545" height="182"></p>
+
+<p>Repeat these steps to add more steering desires for the particle object- of 
+  course, just the connections from the particle node to the steering desire and 
+  from the steering desire to the force combiner are needed.<br>
+  When you are finished, <b>Hypergraph</b> may look like this:</p>
+
+  <p><img src="images/hg_3.gif" width="610" height="208"></p>
+
+<p>Commands to create the above node setup (it is assumed, you already created 
+  the particle object):</p>
+<blockquote>
+  
+    <table width="391" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2" color="#006600">// 
+            create steering desire nodes</font><font face="Courier New, Courier, mono" size="2"><br>
+            createNode bbSteeringDesire -n bbSD_1;<br>
+            createNode bbSteeringDesire -n bbSD_2;<br>
+            createNode bbSteeringDesire -n bbSD_3;<br>
+            <br>
+            <font color="#006600">// create force combiner node</font><br>
+            createNode bbCombineForces -n bbCF;<br>
+            <br>
+            <font color="#006600">// connect particle node with steering desires</font><br>
+            bbConnect particleShape1 bbSD_1 0;<br>
+            bbConnect particleShape1 bbSD_2 0;<br>
+            bbConnect particleShape1 bbSD_3 0;<br>
+            <br>
+            <font color="#006600">// connect steering desires with force combiner<br>
+            // note the use of different index values when <br>
+            // connecting to array attributes</font><br>
+            </font><font face="Courier New, Courier, mono" size="2">bbConnect 
+            bbSD_1 bbCF 0;<br>
+            bbConnect bbSD_2 bbCF 1;<br>
+            bbConnect bbSD_3 bbCF 2;<br>
+            <br>
+            <font color="#006600">// connect force combiner with particle node</font><br>
+            bbConnect bbCF particleShape1 0;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>You can now edit combine forces attributes by selecting the bbCF node and opening 
+  the <b>Attribute Editor. </b>For a detailed description of the combine forces 
+  attributes, see <a href="bb_combine.htm">detailed node descriptions</a>.</p>
+<p>Note: Of course you can use bbCombineForces without bbSteeringDesire to gain 
+  more control on how force fields effect particles.</p>
+
+  <table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_usi"></a>&nbsp;connecting 
+        geometry to steering desires</b></font></td>
+    </tr>
+  </table>
+<p>Some steering desires need geometry input. Currently you can connect locators, 
+  nurbsCurves and nurbsSurfaces to steering desires. the bbConnect command helps 
+  you to complete this task, too.</p>
+
+  <blockquote> 
+    <table width="252" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2" color="#006600">// 
+            examples</font><font face="Courier New, Courier, mono" size="2"><br>
+            bbConnect locator1 bbSD 0;<br>
+            bbConnect locator2 bbSD 1;<br>
+            bbConnect locator3 bbSD 2;<br>
+            </font></p>
+          <p><font face="Courier New, Courier, mono" size="2">bbConnect curve1 
+            bbSD 0;<br>
+            bbConnect curve2 bbSD 1;<br>
+            </font></p>
+          <p><font face="Courier New, Courier, mono" size="2">bbConnect nurbsSphere1 
+            bbSD 0;<br>
+            bbConnect nurbsPlane1 bbSD 1;<br>
+            </font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>Note: Be sure to connect locator / nurbsCurve / nurbsSurface nodes with bbSteeringDesires 
+  only and not their transform nodes!</p>
+
+  <table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_usi"></a>&nbsp;using 
+        fields as steering desires</b></font></td>
+    </tr>
+  </table>
+<p>Every force field in Maya can be used as a steering desire - so the former 
+  phsical force applied to particles becomes a desire, which bugs may follow. 
+  You just have to add the weight and priority attributes to the fields, which 
+  they are missing. </p>
+<blockquote>
+  
+    <table width="228" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">bbConnect fieldName 
+            bbCF 0;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+  <table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_adv"></a>&nbsp;advanced 
+        connection setup</b></font></td>
+    </tr>
+  </table>
+<p>To achieve more complex behaviours, you can use bbCombineForces nodes as inputs 
+  for other bbCombineForces nodes. This may be used to switch between different 
+  sets of steering desires or in general, if the given combination modes do not 
+  fit your needs but the combination you desire may be achieved by hierachising 
+  the steering desires (e.g. Priorized Weighting, Weighted Priorization, etc.).</p>
+<p>Such an setup may look like this - but you are free to build far more complex 
+  ones :-)</p>
+
+  <p><img src="images/hg_4.gif" width="668" height="392"></p>
+  <table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_lim"></a>&nbsp;limiting 
+        bug velocity</b></font></td>
+    </tr>
+  </table>
+<p>As stated before, in behavioural animation forces are self applied and hence 
+  limited. But speed of Maya particles can grow unlimited - so some changes have 
+  to be made to achieve the effect of limited speed:</p>
+<blockquote>
+   
+    <table width="234" border="0">
+      <tr> 
+        <td bgcolor="#FFFFCC"> 
+          <p><font face="Courier New, Courier, mono" size="2">bbClampSpeed particleShape1;</font></p>
+        </td>
+      </tr>
+    </table>
+  </blockquote>
+<p>This will add attributes Minimum - and Maximum Speed which are used in a runtime 
+  expression, to clamp particle velocity.</p>
+<blockquote>
+  <blockquote> 
+    <blockquote> 
+      <p>&nbsp;</p>
+    </blockquote>
+  </blockquote>
+</blockquote>
+<p>As you see, MEL scripts <a href="bb_connect.htm">bbConnect </a>and <a href="bb_clamp.htm">bbClampSpeed</a> 
+  save you a lot of tedious expression editing and scripting. Use them to speed 
+  up creation of behavioural animation setups.</p>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</body>
+</html>

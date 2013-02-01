@@ -1,0 +1,241 @@
+<html>
+<head>
+<title>brainbugz documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="inst"></a>&nbsp;steering 
+      desires - target desires</font></td>
+  </tr>
+</table>
+<p>- target desires need targets to work, this can be any type of geometry (except 
+  subdivision surfaces) <br>
+  - connect geometry to the steering desire node using the Connection Editor you 
+  can call with the buttons in the Attribute Editor<br>
+  - note if you choose to use field of view, this will be only used for bug &lt;-&gt; 
+  assigned target point (does not need to be the whole geometry!) relations</p>
+<p><img src="images/sdTargetAE.gif" width="364" height="438" border="1"></p>
+
+  <table width="92%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="3"><b>Target Desire Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="14%"><b>Target Type</b></td>
+      <td width="7%">enum</td>
+      <td width="79%" valign="top"> &quot;point&quot;, &quot;curve&quot;, &quot;surface&quot;, 
+        &quot;mesh&quot;<br>
+        - items only active if matching geometry is connected</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="14%"><b>Sub Targets</b></td>
+      <td width="7%">enum</td>
+      <td width="79%" valign="top"> 
+        <p>&quot;uniform&quot;<br>
+          - targets are placed equidistant on curve or surface<br>
+          - if you experience that targets are not uniformly placed on the specific 
+          geometry, then try to 'Rebuild Curve / Surface' and be sure to check 
+          radiobutton 'uniform'<br>
+          - if 'Input Selection' is 'All Connected' targets will be distributed 
+          on connected curves / surfaces with respect to the different curve lengths 
+          / surface areas</p>
+        <p>&quot;knots / vertices&quot;<br>
+          - all knots / vertices of curve / surface / mesh will be used as targets</p>
+      </td>
+    </tr>
+    <tr valign="top"> 
+      <td width="14%" height="105"><b>Input Selection</b></td>
+      <td width="7%" height="105">enum</td>
+      <td width="79%" valign="top" height="105">&quot;index&quot;<br>
+        - only one geometry (defined by &quot;input index&quot;) will be used 
+        for computation<br>
+        <br>
+        &quot;all connected&quot;<br>
+        - use all geometry connected to steering desire for computation</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="14%" height="35"><b>Input Index</b></td>
+      <td width="7%" height="35">short</td>
+      <td width="79%" valign="top" height="35">- specifies which input geometry 
+        is to be used, provide the index at which the desired geometry is attached 
+        to the respective array attribute </td>
+    </tr>
+    <tr valign="top"> 
+      <td width="14%" height="33"><b>Tolerance</b></td>
+      <td width="7%" height="33">double</td>
+      <td width="79%" valign="top" height="33">- the amount of error (epsilon 
+        value) in the calculation, this is used when calculating points / distances 
+        to nurbs curves and surfaces</td>
+    </tr>
+  </table>
+  
+<br>
+&nbsp; 
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdTsee"></a>&nbsp;seek</font></td>
+    </tr>
+  </table>
+<p>- seek desire causes the bug to align its orientation towards the specified 
+  target<br>
+  - if a bug continues to seek, it will pass through the target, then turn back 
+  to seek it again <br>
+  - produces zero result if 'Desired Speed'=0 or target not in field of view</p>
+<p><img src="images/sd_pSeek.gif" width="145" height="68" border="1"><br>
+  <br>
+  <img src="images/sd_cSeek.gif" width="245" height="179" border="1"></p>
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdTmot"></a>&nbsp;moth 
+        seek</font></td>
+    </tr>
+  </table>
+
+<p>- moth seek desire is the same as seek, except that the bug is moving in orbital 
+  paths around the target, much like a moth buzzing around a light bulb <br>
+  - produces zero result if 'Desired Speed'=0 or target not in field of view</p>
+<p><img src="images/sd_pMothSeek.gif" width="199" height="122" border="1"></p>
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdTarr"></a>&nbsp;arrival</font></td>
+    </tr>
+  </table>
+
+<p>- arrival is identical to seek behaviour when the bug is far away from the 
+  target, but if the target is in a predefined distance (Stopping Radius), the 
+  bug will try to slow down and eventually stop at the target <br>
+  - produces zero result if 'Desired Speed'=0 or target not in field of view</p>
+<p><img src="images/sd_pArrival.gif" width="221" height="106" border="1"></p>
+
+  <table width="93%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="3"><b>Arrival Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="16%"><b>Stopping Range</b></td>
+      <td width="7%">double</td>
+      <td width="77%">- active if steering desire is arrival<br>
+        - predefined distance at which the bug will try to slow down and stop 
+        at the target </td>
+    </tr>
+  </table>
+<br>
+&nbsp; 
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdTpur"></a>&nbsp;pursuit</font></td>
+    </tr>
+  </table>
+
+<p>- pursuit is identical to seek behaviour except the bug tries to predict where 
+  its target is moving and tries to intercept the targtes path<br>
+  - this will only produce visible result, if the target is moving<br>
+  &nbsp; <br>
+  <img src="images/sd_pursuit.gif" width="235" height="135" border="1"> <br>
+</p>
+
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdTsha"></a>&nbsp;shadow</font></td>
+    </tr>
+  </table>
+<p>- shadow is identical to seek behaviour when the bug is far away from the target, 
+  but if the target is in a predefined distance (Shadow Range), the bug will try 
+  mimic the movement of the target<br>
+  - produces zero result if 'Desired Speed'=0 or target not in field of view</p>
+<p><img src="images/sd_shadow.gif" width="215" height="203" border="1"></p>
+<table width="93%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+  <tr valign="top" bgcolor="#FFFFCC"> 
+    <td colspan="3"><b>Shadow Attributes</b></td>
+  </tr>
+  <tr valign="top"> 
+    <td width="16%" height="38"><b>Shadow Range</b></td>
+    <td width="7%" height="38">double</td>
+    <td width="77%" height="38">- active if steering desire is shadow<br>
+      - predefined distance at which the bug will try to mimic the movement of 
+      the target</td>
+  </tr>
+</table>
+<p>&nbsp;</p>
+
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdTfol"></a>&nbsp;follow</font></td>
+    </tr>
+  </table>
+<p>- bug estimates its future position on its current heading, then seeks the 
+  closest point on the curve / surface / mesh to this future position<br>
+  - 'Probe Length' serves as scaling factor for the current velocity to calculate 
+  the future position<br>
+  - bugs do (currently) follow the curve in no predefined direction<b><br>
+  </b>- field of view is currently not available with this steering desire<br>
+  - produces zero result if bug inside space defined by 'Target Radius'</p>
+<p><img src="images/sd_CurveFollowing.gif" width="233" height="181" border="1"></p>
+
+  
+<table width="93%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+  <tr valign="top" bgcolor="#FFFFCC"> 
+    <td colspan="3"><b>Follow Attributes</b></td>
+  </tr>
+  <tr valign="top"> 
+    <td width="14%"><b>Target Radius</b></td>
+    <td width="8%">double</td>
+    <td width="78%">- active if steering desire is following<br>
+      - defines area around curve / surface in which a bug thinks it is following 
+      the path and does not change its direction</td>
+  </tr>
+  <tr valign="top"> 
+    <td width="14%"><b>Probe Length</b></td>
+    <td width="8%">double</td>
+    <td width="78%">- scaling factor for the current velocity to calculate the 
+      future position</td>
+  </tr>
+  <tr valign="top"> 
+    <td width="14%"><b>Tolerance</b></td>
+    <td width="8%">double</td>
+    <td width="78%">- defines the maximum error used in the calculation, the bigger 
+      the value, the faster the computation</td>
+  </tr>
+</table>
+<br>
+&nbsp; 
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdTobs"></a>&nbsp;obstacle 
+        avoidance </font></td>
+    </tr>
+  </table>
+
+<p>- obstacle avoidance prevents the bugs from bumping into obstacles (which can 
+  be any mesh or nurbs surface)<br>
+  - every bug has got a probe of a specified length attached at its front, if 
+  this probe touches one of the specified obstacles, then the bug will try to 
+  steer away from this predicted collision point <br>
+  - though you can use nurbsSurfaces as obstacles, it is recommended to use meshes 
+  as the collision point calculation can be performed much faster with this type 
+  of geometry</p>
+<p><img src="images/sd_obstacleAvoidance.gif" width="250" height="139" border="1"></p>
+<table width="93%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+  <tr valign="top" bgcolor="#FFFFCC"> 
+    <td colspan="3"><b>Follow Attributes</b></td>
+  </tr>
+  <tr valign="top"> 
+    <td width="15%"><b>Probe Length</b></td>
+    <td width="8%">double</td>
+    <td width="77%">- probe length to check for obstacles</td>
+  </tr>
+  <tr valign="top">
+    <td width="15%"><b>Tolerance</b></td>
+    <td width="8%">double</td>
+    <td width="77%">- defines the maximum error used in the calculation, the bigger 
+      the value, the faster the computation</td>
+  </tr>
+</table>
+
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</body>
+</html>

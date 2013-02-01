@@ -1,0 +1,782 @@
+//
+// bbSteeringDesireField Template
+//
+// bRAINbUGZ v1.0
+// behavioural animation engine for maya particles
+//
+// tested on Maya 4.0, Windows environment
+// (c) carsten kolve, 01.2002
+//
+// carsten@kolve.com
+// www.kolve.com
+//
+
+source AEbbConnectionEditor.mel;
+
+global proc AEbbSteeringDesireFieldTemplate( string $nodeName )
+{
+	editorTemplate -beginScrollLayout;
+
+		editorTemplate -beginLayout "Steering Desire Attributes" -collapse false;
+			editorTemplate -beginNoOptimize;
+			editorTemplate -addControl "steeringDesire" "activeSDAttributes";
+			editorTemplate -endNoOptimize;
+
+		editorTemplate -beginLayout "General Bug Attributes";
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Physical Attributes";
+			editorTemplate -addControl "bugRadius";
+			editorTemplate -addControl "maximumForce";
+			editorTemplate -addControl "inverseDesiredSteeringForce";
+			editorTemplate -addControl "desiredSpeed";
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Field of View";
+			editorTemplate -beginNoOptimize;
+			editorTemplate -addControl "useSensorRange" "activeSDAttributes";
+			editorTemplate -addControl "sensorRange";
+			editorTemplate -addControl "useSensorAngle" "activeSDAttributes";
+			editorTemplate -addControl "sensorAngle";
+			editorTemplate -endNoOptimize;
+		editorTemplate -endLayout;
+
+
+		editorTemplate -beginLayout "Bug Desire Attributes";
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Head Direction";
+
+			editorTemplate -addControl "headingDirection";
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Wander";
+
+			editorTemplate -l "Sphere Radius" -addControl "wanderSphereRadius";
+			editorTemplate -l "Sphere Offset" -addControl "wanderSphereOffset";
+			// editorTemplate -addSeparator;
+			editorTemplate -addControl "chooseSpeed" "activeSDAttributes";
+			editorTemplate -l "Minimum Speed" -addControl "wanderMinimumSpeed";
+			editorTemplate -l "Maximum Speed" -addControl "wanderMaximumSpeed";
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Random Attributes";
+			editorTemplate -addControl "useRandom" "activeSDAttributes";
+
+			editorTemplate -l "Inner Range" -addControl "wanderMinimumRandomVector";
+			editorTemplate -l "Outer Range" -addControl "wanderMaximumRandomVector";
+			editorTemplate -addControl "seed";
+			editorTemplate -addControl "initSeedFrame";
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Target Desire Attributes";
+			editorTemplate -beginNoOptimize;
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Connected Geometry";
+			editorTemplate -callCustom "inputGeometryTableNew" "inputGeometryTableReplace" " ";
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Choose Target(s)";
+		//	editorTemplate -addControl "targetType";
+			editorTemplate -callCustom "targetTypeGrpNew" "targetTypeGrpReplace" "targetType" "subTargets" "inputSelection" "inputIndex" " ";
+		//	editorTemplate -addControl "subTargets";
+		//	editorTemplate -addControl "inputSelection" "activeSDAttributes";
+		//	editorTemplate -addControl "inputIndex";
+			editorTemplate -addSeparator;
+			editorTemplate -callCustom "customTextNew" "customTextReplace" "Distances";
+			editorTemplate -addControl "stoppingRange";
+			editorTemplate -addControl "shadowRange";
+			editorTemplate -addControl "targetRadius";
+			editorTemplate -addControl "probeLength";
+			editorTemplate -addSeparator;
+			editorTemplate -addControl "tolerance";
+			editorTemplate -endNoOptimize;
+		editorTemplate -endLayout;
+
+		editorTemplate -beginLayout "Neighbour Desire Attributes";
+			editorTemplate -addControl "bugDistance";
+		editorTemplate -endLayout;
+
+//		editorTemplate -beginLayout "Combination Attributes";
+//			editorTemplate -addControl "priority";
+//			editorTemplate -addControl "weight";
+//		editorTemplate -endLayout;
+
+	editorTemplate -endLayout;
+
+		// suppressed attributes
+		editorTemplate -suppress "lastTarget";
+		editorTemplate -suppress "magnitude";
+		editorTemplate -suppress "attenuation";
+		editorTemplate -suppress "maxDistance";
+		editorTemplate -suppress "applyPerVertex";
+		editorTemplate -suppress "useMaxDistance";
+		editorTemplate -suppress "volumeShape";
+		editorTemplate -suppress "volumeExclusion";
+		editorTemplate -suppress "volumeOffset";
+		editorTemplate -suppress "sectionRadius";
+		editorTemplate -suppress "volumeSweep";
+		editorTemplate -suppress "maximumSpeed";
+		editorTemplate -suppress "minimumSpeed";
+		editorTemplate -suppress "inputPoint";
+		editorTemplate -suppress "inputSurface";
+		editorTemplate -suppress "inputMesh";
+		editorTemplate -suppress "bbInputCurve";
+		editorTemplate -suppress "lastVector";
+		editorTemplate -suppress "targetType";
+		editorTemplate -suppress "subTargets";
+		editorTemplate -suppress "inputSelection";
+		editorTemplate -suppress "inputIndex";
+
+		AEfieldInclude $nodeName;
+	AEtransformMain $nodeName;
+	editorTemplate -addExtraControls;
+	editorTemplate -endScrollLayout;
+
+}
+
+
+
+// update connected geometry table
+global proc int getMaxNumberOfConnectedElements(string $nodeName)
+{
+	// get biggest nr of connected elemtens
+	int $maxValue =0;
+	int $temp =0;
+
+	$temp = getNumberOfConnectedElements($nodeName+".inputPoint");
+	$maxValue = `max $maxValue $temp`;
+	$temp = getNumberOfConnectedElements($nodeName+".bbInputCurve");
+	$maxValue = `max $maxValue $temp`;
+	$temp = getNumberOfConnectedElements($nodeName+".inputSurface");
+	$maxValue = `max $maxValue $temp`;
+	$temp = getNumberOfConnectedElements($nodeName+".inputMesh");
+	$maxValue = `max $maxValue $temp`;
+
+	return $maxValue;
+}
+
+// creates control for target selection
+global proc targetTypeGrpNew( string $targetType, string $subTargets, string $inputSelection, string $inputIndex, string $nodeName )
+{
+	string $nodeName = substring($nodeName,1,size($nodeName)-2);
+
+	rowColumnLayout -nc 3 -cw 1 133 rcLayout;
+
+	radioCollection targetTypeCollection;
+		text -l "Target Type  " -al "right";
+
+   		radioButton -label "Point"
+   					-data 1
+   					-cc ("activeSDAttributes "+$nodeName)
+   					pointRB;
+
+    	radioButton -label "Curve"
+    				-data 2
+    				-cc ("activeSDAttributes "+$nodeName)
+    				curveRB;
+
+    	text -l"";
+
+    	radioButton -label "Surface"
+    			 	-data 3
+    			 	-cc ("activeSDAttributes "+$nodeName)
+    			 	surfaceRB;
+
+    	radioButton -label "Mesh"
+    				-data 4
+    				-cc ("activeSDAttributes "+$nodeName)
+    				meshRB;
+
+    	text -l"";	text -l"";	text -l"";
+
+    radioCollection subTargetsCollection;
+    	text -l "Sub Targets  " -al "right";
+
+    	radioButton -label "Uniform"
+    				-data 0
+    				-cc ("activeSDAttributes "+$nodeName)
+    				uniformRB;
+
+    	radioButton -label "Knots / Vertices"
+    				-data 1
+    				-cc ("activeSDAttributes "+$nodeName)
+    				knotsRB;
+
+   		text -l""; text -l""; text -l"";
+
+    radioCollection inputSelectionCollection;
+    	text -l "Input Selection  " -al "right";
+
+    	radioButton -label "All connected"
+    				-data 1
+    				-cc ("activeSDAttributes "+$nodeName)
+    				allConnectedRB;
+
+    	radioButton -label "Index"
+    				-data 0
+    				-cc ("activeSDAttributes "+$nodeName)
+    				indexRB;
+
+    	setParent ..;
+
+    intSliderGrp -label "Input Index" -field true -minValue 0 -maxValue 5 indexGrp;
+
+    rowColumnLayout -e -rowSpacing 3 10 -rowSpacing 4 10 rcLayout;
+
+	connectControl targetTypeCollection $targetType;
+	connectControl subTargetsCollection $subTargets;
+	connectControl inputSelectionCollection $inputSelection;
+	connectControl indexGrp $inputIndex;
+}
+
+global proc targetTypeGrpReplace( string $targetType, string $subTargets, string $inputSelection , string $inputIndex,string $nodeName )
+{
+	string $nodeName = substring($nodeName,1,size($nodeName)-2);
+
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) pointRB;
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) curveRB;
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) surfaceRB;
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) meshRB;
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) uniformRB;
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) knotsRB;
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) allConnectedRB;
+    radioButton -e -cc ("activeSDAttributes "+$nodeName) indexRB;
+
+   	connectControl targetTypeCollection $targetType;
+	connectControl subTargetsCollection $subTargets;
+	connectControl inputSelectionCollection $inputSelection;
+	connectControl indexGrp $inputIndex;
+}
+
+
+// control for displaying and selecting input geometry
+global proc inputGeometryTableNew(string $nodeName)
+{
+	// create table
+	string $nodeName = substring($nodeName,1,size($nodeName)-2);
+
+	int $maxValue = getMaxNumberOfConnectedElements($nodeName);
+
+	columnLayout;
+		scriptTable -rows $maxValue -columns 5
+	    	-label 1 "Index" -cw 1 40
+	    	-label 2 "Point" -cw 2 72
+	    	-label 3 "Curve" -cw 3 72
+	    	-label 4 "Surface" -cw 4 72
+	    	-label 5 "Mesh" -cw 5 72
+	    	-getCellCmd ("fillInputGeometryTable "+$nodeName)
+	    	-width 400
+	    	-height (30+16*$maxValue)
+	    	inputGeometryTable;
+
+
+	// create buttons
+		rowLayout -nc 5 -cw5 72 72 72 72 72
+				  -cl5 "left" "center" "center" "center" "center";
+		text -l "DisConnect:";
+		button -l "Point(s)"   -c ("connectSelect "+$nodeName+".inputPoint {\"locator\"}") pointButton;
+		button -l "Curve(s)"   -c ("connectSelect "+$nodeName+".bbInputCurve {\"nurbsCurve\"}") curveButton;
+		button -l "Surface(s)" -c ("connectSelect "+$nodeName+".inputSurface {\"nurbsSurface\"}") surfaceButton;
+		button -l "Mesh(es)"   -c ("connectSelect "+$nodeName+".inputMesh {\"mesh\"}") meshButton;
+		setParent .. ;
+}
+
+global proc inputGeometryTableReplace(string $nodeName)
+{
+	string $nodeName = substring($nodeName,1,size($nodeName)-2);
+
+    // update button commands
+    button -e -c ("connectSelect "+$nodeName+".inputPoint {\"locator\"}") pointButton;
+	button -e -c ("connectSelect "+$nodeName+".bbInputCurve {\"nurbsCurve\"}") curveButton;
+	button -e -c ("connectSelect "+$nodeName+".inputSurface {\"nurbsSurface\"}") surfaceButton;
+	button -e -c ("connectSelect "+$nodeName+".inputMesh {\"mesh\"}") meshButton;
+
+	// attach new node to table
+	scriptTable -e
+				-getCellCmd ("fillInputGeometryTable "+$nodeName)
+    			inputGeometryTable;
+
+    // refresh table
+    scriptTable -e 	-clearTable	inputGeometryTable;
+
+	// update nr of rows and size of table
+	int $maxValue = getMaxNumberOfConnectedElements($nodeName);
+
+	scriptTable -e -height (30+16*$maxValue) -rows ($maxValue) inputGeometryTable;
+
+}
+
+global proc string fillInputGeometryTable(string $nodeName, int $row, int $col)
+{
+	string $result;
+	$row --;
+
+	if ($col == 1)
+		// index
+		$result = $row;
+	else
+	{
+		string $conn[];
+
+		switch ($col)
+		{
+			case 2: // point
+					$conn = eval("listConnections -s true -d false "+$nodeName+".inputPoint["+$row+"]");
+					break;
+			case 3: // curve
+					$conn = eval("listConnections -s true -d false "+$nodeName+".bbInputCurve["+$row+"]");
+					break;
+			case 4: // surface
+					$conn = eval("listConnections -s true -d false "+$nodeName+".inputSurface["+$row+"]");
+					break;
+			case 5: // mesh
+					$conn = eval("listConnections -s true -d false "+$nodeName+".inputMesh["+$row+"]");
+					break;
+		}
+
+		if (size($conn)==0)
+			$result = " ";
+		else
+			$result = $conn[0];
+	}
+	return $result;
+}
+
+
+global proc activeSDAttributes( string $nodeName )
+{
+// define SDS_BUG							0
+// define SDS_BUG_DIRECTIONHEADING			1
+// define SDS_BUG_WANDER					2
+// define SDS_TARGET						10
+// define SDS_TARGET_SEEK					11
+// define SDS_TARGET_MOTHSEEK				12
+// define SDS_TARGET_ARRIVAL				13
+// define SDS_TARGET_PURSUIT				14
+// define SDS_TARGET_SHADOW					15
+// define SDS_TARGET_FOLLOW					16
+// define SDS_TARGET_OBSTACLEAVOIDANCE		17
+// define SDS_NEIGHBOR						30
+// define SDS_NEIGHBOR_ALIGNMENT			31
+// define SDS_NEIGHBOR_COHESION				32
+// define SDS_NEIGHBOR_SEPARATION			33
+// define SDS_NEIGHBOR_COLLISIONAVOIDANCE	34
+// define SDS_NEIGHBOR_KEEPDISTANCE			35
+// define SDS_NEIGHBOR_OPORTUNISM			36
+
+// get settings
+
+    string $attr = $nodeName + ".steeringDesire";
+    int $sdSelection = `getAttr $attr`;
+
+	// check for divider
+	if (($sdSelection == 10)||($sdSelection==30))
+	{
+		$sdSelection++;
+		eval("setAttr "+$nodeName+".steeringDesire "+$sdSelection);
+	}
+
+	// make connection to time, if steering desire has a random value
+	if ($sdSelection == 2) // bug wander
+	{
+		if (!(eval("isConnected time1.outTime "+$nodeName+".currentTime")))
+			eval("connectAttr time1.outTime "+$nodeName+".currentTime");
+	}
+	else
+	{
+		if (eval("isConnected time1.outTime "+$nodeName+".currentTime"))
+			eval("disconnectAttr time1.outTime "+$nodeName+".currentTime");
+	}
+
+
+	int $sdBug = off;
+	int $sdTarget = off;
+	int $sdNeighbor = off;
+
+	if ($sdSelection < 10)
+		$sdBug = on;
+	else
+		if ($sdSelection < 30)
+			$sdTarget = on;
+		else
+			if ($sdSelection < 40)
+				$sdNeighbor = on;
+
+// dimmstatus of ui objects
+
+	// general bug attributes
+		// physical attributes
+		int $bugRadiusD = on;
+		int $maximumForceD = off;
+		int $inverseDesiredSteeringForceD = off;
+		int $desiredSpeedD = on;
+
+		// field of view
+	  	int $useSensorRangeD = on;
+	  	int $sensorRangeD = on;
+	  	int $useSensorAngleD = on;
+	  	int $sensorAngleD = on;
+
+	// bug desire attributes
+		// head direction
+		int	$headingDirectionD = on;
+
+		// wander
+		int	$wanderSphereRadiusD= on;
+		int	$wanderSphereOffsetD= on;
+		int	$chooseSpeedD= on;
+		int	$wanderMinimumSpeedD= on;
+		int	$wanderMaximumSpeedD= on;
+
+		// random attributes
+		int	$useRandomD= on;
+		int	$wanderMinimumRandomVectorD= on;
+		int	$wanderMaximumRandomVectorD= on;
+		int	$seedD= on;
+		int	$initSeedFrameD= on;
+
+	// target desire attributes
+		// choose targets
+		int $rcLayoutD = on;
+		// target type
+		int $ttPointD = on;
+		int $ttCurveD = on;
+		int $ttSurfaceD = on;
+		int $ttMeshD = on;
+		// sub targets
+		int $stUniformD = on;
+		int $stKnotsD = on;
+		//input selection
+		int $isAllConnectedD = on;
+		int $isIndexD = on;
+
+		int $inputIndexD = on;
+		int $stoppingRangeD = on;
+		int $targetRadiusD = on;
+		int $toleranceD= on;
+		int $probeLengthD = on;
+		int $shadowRangeD = on;
+
+	// neighbor desire attributes
+		int $bugDistanceD = on;
+
+	// bug steering desires
+	if ($sdBug)
+	{
+		$desiredSpeedD = off;
+
+		switch ($sdSelection)
+		{
+			case 1 : //  SDS_BUG_DIRECTIONHEADING
+					 $headingDirectionD = off;
+					 break;
+
+			case 2 : //  SDS_BUG_WANDER
+					$wanderSphereRadiusD= off;
+					$wanderSphereOffsetD= off;
+					$chooseSpeedD= off;
+
+					$attr = $nodeName + ".chooseSpeed";
+					int $csActive = `getAttr $attr`;
+
+					if ($csActive == 1)
+					{ // speed range
+						$wanderMinimumSpeedD= off;
+						$wanderMaximumSpeedD= off;
+						$desiredSpeedD = on;
+					}
+
+					// use random
+					// $useRandomD = off;
+					$attr = $nodeName + ".useRandom";
+					int $urActive = `getAttr $attr`;
+
+					if ($urActive)
+					{
+						$wanderMinimumRandomVectorD= off;
+						$wanderMaximumRandomVectorD= off;
+						$seedD= off;
+						$initSeedFrameD= off;
+					}
+
+
+					 break;
+		}
+
+	}
+
+	//////////////////////////////////////////////////
+	// targetDesire
+
+	int $fieldOfView = off;
+
+	if ($sdTarget)
+	{
+	  	$fieldOfView = on;
+	  	$desiredSpeedD = off;
+	  	$rcLayoutD = off;
+
+	  	$ttPointD = off;
+		$ttCurveD = off;
+		$ttSurfaceD = off;
+		$ttMeshD = off;
+
+		// sub targets
+		$stUniformD = off;
+		$stKnotsD = off;
+		//input selection
+		$isAllConnectedD = off;
+		$isIndexD = off;
+
+		switch ($sdSelection)
+		{
+			case 11://  SDS_TARGET_SEEK
+					break;
+			case 12://  SDS_TARGET_MOTHSEEK
+					break;
+			case 13://  SDS_TARGET_ARRIVAL
+					$bugRadiusD = off;
+					$stoppingRangeD = off;
+					break;
+			case 14://  SDS_TARGET_PURSUIT
+					break;
+			case 15://  SDS_TARGET_SHADOW
+					$shadowRangeD = off;
+					break;
+			case 16://  SDS_TARGET_FOLLOW
+					$isAllConnectedD = on;
+					$fieldOfView = off;
+					$targetRadiusD = off;
+					$toleranceD = off;
+					$ttPointD = on;
+					$stUniformD = on;
+					$stKnotsD = on;
+					break;
+			case 17://  SDS_TARGET_OBSTACLEAVOIDANCE
+					$fieldOfView = off;
+					$toleranceD = off;
+					$bugRadiusD = off;
+					$ttPointD = on;
+					$ttCurveD = on;
+					$stUniformD = on;
+					$stKnotsD = on;
+					$probeLengthD = off;
+					break;
+		}
+
+		if(`radioButton -ex indexRB`)
+		{
+			// dim geometry selector if no geometry is attached
+			int $numInputPoint = eval("getNumberOfConnectedElements "+$nodeName+".inputPoint");
+			int $numInputCurve = eval("getNumberOfConnectedElements "+$nodeName+".bbInputCurve");
+			int $numInputSurface = eval("getNumberOfConnectedElements "+$nodeName+".inputSurface");
+			int $numInputMesh = eval("getNumberOfConnectedElements "+$nodeName+".inputMesh");
+
+			if ($numInputPoint==0)	$ttPointD = on;
+			if ($numInputCurve==0)	$ttCurveD = on;
+			if ($numInputSurface==0) $ttSurfaceD = on;
+			if ($numInputMesh==0) $ttMeshD = on;
+
+			// get currently selected geometry
+			string $currGeometryType = `radioCollection -q -select targetTypeCollection`;
+
+			// set geometry radio button
+			int $validGeometryFound=false;
+
+			if (!($ttMeshD && $ttSurfaceD && $ttCurveD && $ttPointD))
+			{
+				do
+				{
+					if (($currGeometryType=="pointRB")&&($ttPointD))
+						$currGeometryType="curveRB";
+
+					if (($currGeometryType=="curveRB")&&($ttCurveD))
+						$currGeometryType="surfaceRB";
+
+					if (($currGeometryType=="surfaceRB")&&($ttSurfaceD))
+						$currGeometryType="meshRB";
+
+					if (($currGeometryType=="meshRB")&&($ttMeshD))
+						$currGeometryType="pointRB";
+
+
+					if ((($currGeometryType=="meshRB")&&(!$ttMeshD)) ||
+						(($currGeometryType=="curveRB")&&(!$ttCurveD)) ||
+						(($currGeometryType=="surfaceRB")&&(!$ttSurfaceD)) ||
+						(($currGeometryType=="pointRB")&&(!$ttPointD)))
+						{
+							$validGeometryFound=true;
+						}
+				}
+				while(!$validGeometryFound);
+
+				int $tempTargetType = 0;
+				switch ($currGeometryType)
+				{
+					case "pointRB": 	$tempTargetType = 1; break;
+					case "curveRB": 	$tempTargetType = 2; break;
+					case "surfaceRB": 	$tempTargetType = 3; break;
+					case "meshRB": 		$tempTargetType = 4; break;
+				}
+
+				radioButton -e -select $currGeometryType;
+				eval("setAttr "+$nodeName+".targetType "+$tempTargetType);
+
+			}
+			else
+			{
+				// if all geometry dimmed, then dim all other controls, too
+				$stKnotsD = on;
+				$inputIndexD = on;
+				$stUniformD = on;
+				$isAllConnectedD = on;
+				$isIndexD = on;
+			}
+
+			// set input index
+			int $inputIndexMax=0;
+
+			if ($currGeometryType=="pointRB") $inputIndexMax = $numInputPoint;
+			if ($currGeometryType=="curveRB") $inputIndexMax = $numInputCurve;
+			if ($currGeometryType=="surfaceRB") $inputIndexMax = $numInputSurface;
+			if ($currGeometryType=="meshRB") $inputIndexMax = $numInputMesh;
+
+			if ($inputIndexMax > 1)
+			{
+				intSliderGrp -e -max ($inputIndexMax-1) indexGrp;
+			}
+			else
+			{
+				$isAllConnectedD = on;
+				// eval("setAttr "+$nodeName+".inputSelection 0");
+				// radioButton -e -select  indexRB;
+				intSliderGrp -e -value 0 indexGrp;
+				eval("setAttr "+$nodeName+".inputIndex 0");
+				$inputIndexD = on;
+			}
+
+
+			//
+
+			if((`radioButton -q -select indexRB`)&&($inputIndexMax > 1))
+				$inputIndexD = off;
+
+			if(`radioButton -q -select pointRB`)
+			{
+				$stKnotsD = on;
+				eval("setAttr "+$nodeName+".subTargets 0");
+				radioButton -e -select  uniformRB;
+			}
+
+			if(`radioButton -q -select meshRB`)
+			{
+				$stUniformD = on;
+				eval("setAttr "+$nodeName+".subTargets 1");
+				radioButton -e -select  knotsRB;
+			}
+
+			if ($isAllConnectedD)
+			{
+				eval("setAttr "+$nodeName+".inputSelection 0");
+				radioButton -e -select  indexRB;
+			}
+
+
+		}
+	}
+
+	if ($sdNeighbor)
+	{
+		$fieldOfView = true;
+
+		switch ($sdSelection)
+		{
+			case 31://  SDS_NEIGHBOR_ALIGNMENT
+				break;
+			case 32://  SDS_NEIGHBOR_COHESION
+				break;
+			case 33://  SDS_NEIGHBOR_SEPARATION
+				break;
+			case 34://  SDS_NEIGHBOR_COLLISIONAVOIDANCE
+				break;
+			case 35://  SDS_NEIGHBOR_KEEPDISTANCE
+					$bugDistanceD = off;
+				break;
+			case 36://  SDS_NEIGHBOR_OPORTUNISM
+				break;
+	    }
+	}
+
+	// field of view parameters
+
+	if ($fieldOfView)
+	{
+		$useSensorRangeD = off;
+	  	if(eval("getAttr "+$nodeName+".useSensorRange"))
+	  	  	$sensorRangeD = off;
+
+	  	$useSensorAngleD = off;
+	  	if(eval("getAttr "+$nodeName+".useSensorAngle"))
+	 	  	$sensorAngleD = off;
+	}
+
+
+
+
+	// dim selected attributes
+
+	//general bug attr
+	editorTemplate -dimControl $nodeName "bugRadius" $bugRadiusD;
+	editorTemplate -dimControl $nodeName "maximumForce" $maximumForceD;
+	editorTemplate -dimControl $nodeName "inverseDesiredSteeringForce" $inverseDesiredSteeringForceD;
+	editorTemplate -dimControl $nodeName "desiredSpeed" $desiredSpeedD;
+
+	editorTemplate -dimControl $nodeName "useSensorRange" $useSensorRangeD;
+	editorTemplate -dimControl $nodeName "sensorRange" $sensorRangeD;
+	editorTemplate -dimControl $nodeName "useSensorAngle" $useSensorAngleD;
+	editorTemplate -dimControl $nodeName "sensorAngle" $sensorAngleD;
+
+	// bug desire attr
+	editorTemplate -dimControl $nodeName "headingDirection"	$headingDirectionD ;
+
+	editorTemplate -dimControl $nodeName "wanderSphereRadius" $wanderSphereRadiusD;
+	editorTemplate -dimControl $nodeName "wanderSphereOffset" $wanderSphereOffsetD;
+	editorTemplate -dimControl $nodeName "chooseSpeed" $chooseSpeedD;
+	editorTemplate -dimControl $nodeName "wanderMinimumSpeed" $wanderMinimumSpeedD;
+	editorTemplate -dimControl $nodeName "wanderMaximumSpeed" $wanderMaximumSpeedD;
+
+	editorTemplate -dimControl $nodeName "useRandom" $useRandomD;
+	editorTemplate -dimControl $nodeName "wanderMinimumRandomVector" $wanderMinimumRandomVectorD;
+	editorTemplate -dimControl $nodeName "wanderMaximumRandomVector" $wanderMaximumRandomVectorD;
+	editorTemplate -dimControl $nodeName "seed"	$seedD;
+	editorTemplate -dimControl $nodeName "initSeedFrame" $initSeedFrameD;
+
+	// target desire attr
+
+	// as custom controls are not created on ae creation, check if theyre already there
+	if (`rowColumnLayout -ex rcLayout`)
+	{
+		rowColumnLayout -e -enable (!$rcLayoutD) rcLayout;
+
+		if (!$rcLayoutD)
+		{
+			radioButton -e -enable (!$ttPointD) pointRB;
+			radioButton -e -enable (!$ttCurveD) curveRB;
+			radioButton -e -enable (!$ttSurfaceD) surfaceRB;
+			radioButton -e -enable (!$ttMeshD) meshRB;
+
+			radioButton -e -enable (!$stUniformD) uniformRB;
+			radioButton -e -enable (!$stKnotsD) knotsRB;
+
+			radioButton -e -enable (!$isAllConnectedD) allConnectedRB;
+			radioButton -e -enable (!$isIndexD) indexRB;
+		}
+		intSliderGrp -e -enable (!$inputIndexD) indexGrp;
+	}
+
+	editorTemplate -dimControl $nodeName "stoppingRange" $stoppingRangeD;
+	editorTemplate -dimControl $nodeName "targetRadius"	$targetRadiusD;
+	editorTemplate -dimControl $nodeName "tolerance" $toleranceD;
+	editorTemplate -dimControl $nodeName "shadowRange" $shadowRangeD;
+	editorTemplate -dimControl $nodeName "probeLength" $probeLengthD;
+
+	// neigbor
+	editorTemplate -dimControl $nodeName "bugDistance" $bugDistanceD;
+
+}
+

@@ -1,0 +1,4 @@
+global proc bbDeleteUI()
+{
+	deleteUI bbMenu;
+}

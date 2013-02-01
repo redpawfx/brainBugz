@@ -1,0 +1,130 @@
+<html>
+<head>
+<title>bRAINbUGZ Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="bug"></a>&nbsp; 
+      bug structure</font></td>
+  </tr>
+</table>
+  
+&nbsp; 
+<table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_ste"></a>&nbsp;action 
+        layers </b></font></td>
+    </tr>
+  </table>
+<p>Maya particles are dumb. In fact, they are just mass points on which fields 
+  (such as gravity or vortex) can apply forces. Particles position in space is 
+  changed by these forces. As this is kind of dull, let's put some brain in the 
+  particles (I'll call them bugs from now on) and use the principles of behavioural 
+  animation to animate them - well, letting them animate themselves maybe the 
+  better term.</p>
+<p>Behaviour of a bug can be divided into different layers [1].</p>
+<blockquote>
+  <table width="589" border="0">
+    <tr align="center"> 
+      <td bgcolor="#FF99CC" width="154"><b>Action Selection</b></td>
+      <td width="71"> <b><font size="4" face="Arial, Helvetica, sans-serif">&gt;</font></b></td>
+      <td bgcolor="#FFCCCC" width="133"><b>Steering</b></td>
+      <td width="48"><b><font size="4" face="Arial, Helvetica, sans-serif">&gt;</font></b></td>
+      <td bgcolor="#FFFFCC" width="161"><b>Locomotion</b></td>
+    </tr>
+  </table>
+</blockquote>
+<p><b>Action Selection</b>: &quot;High level goals&quot; - they are defined by 
+  you, the animator. What is the bug's motivation to move? Maybe you want them 
+  to reach the other side of a table. You have to set up a set of steering desires, 
+  bugs should follow, to accomplish this goal. Maybe you have got to combine or 
+  blend different steering desires, or change them over time. The node <a href="#de_com">bbCombineForces</a> 
+  helps you to do this.</p>
+<p><b>Steering</b>: Steering desires are the used to decompose the action selection 
+  goal into subgoals. Getting to the other side of the table is the main motivation, 
+  but bugs also don't want to collide with each other, stick together with the 
+  other bugs in the swarm, don't crash into obstacles etc.. <a href="#de_ste">bbSteeringDesire</a> 
+  node let's you define such desires. It produces desired forces, which bugs may 
+  follow - depending on how the forces are combined (<a href="#de_com">bbCombineForces</a>).</p>
+<p><b>Locomotion</b>: This is, where it gets physical. After a desired force is 
+  computed (using the above nodes), bugs try to self apply the forces and move 
+  accordingly. In the current version of bRAINbUGZ, this is done using the Maya 
+  particle physical simulation engine. As this does not completly fit needs for 
+  behavioural animation, its output is modified using a runtime expression (<a href="#de_cla">bbClampSpeed</a>). 
+</p>
+  <table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="wo_ste"></a>&nbsp;bug 
+        properties </b></font></td>
+    </tr>
+  </table>
+<p>The following table shows you all the properties a bug has. As I wanted to 
+  use the Maya particles engine (particle cashing, emitters, fields - it was to 
+  tempting, to use all this features for behavioural animation, too), properties 
+  are not defined in one data structure, but in different nodes. The third column 
+  shows you where to change them.</p>
+  <table width="95%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr bgcolor="#FFFFCC"> 
+      <td width="17%"><b>Property</b></td>
+      <td width="13%"><b>Data Type</b></td>
+      <td width="53%"><b>Description</b></td>
+      <td width="17%"><b>Node</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%">Mass</td>
+      <td width="13%">double</td>
+      <td width="53%">- bugs with different masses, but the same strength (indicated 
+        through the maximum force) react differently on change of orientation 
+        or speed<br>
+        - heavy bodies usually react slower than light ones</td>
+      <td width="17%">particle</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%">Position</td>
+      <td width="13%">MVector</td>
+      <td width="53%">- current position in world space</td>
+      <td width="17%">particle</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%">Velocity</td>
+      <td width="13%">MVector</td>
+      <td width="53%">- current velocity<br>
+        - vector defines the direction the bug is heading (bugs are always aligned 
+        with their velocities)<br>
+        - vector length defines current bug speed</td>
+      <td width="17%">particle</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%">Maximum Force</td>
+      <td width="13%">double</td>
+      <td width="53%">- maximum force the bug can apply to itself <br>
+        -the bigger this value, the more strength the bug has, the faster it can 
+        change orientation or speed.</td>
+      <td width="17%">bbSteeringDesire</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%" valign="top">Minimum Speed</td>
+      <td width="13%" valign="top">double</td>
+      <td width="53%"> - minimum speed the bug can take <br>
+        - setting a minimum speed can be useful, if you want to force the bugs 
+        not to stop</td>
+      <td width="17%">particle (use bbClampSpeed)</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%" valign="top">Maximum Speed</td>
+      <td width="13%" valign="top">double</td>
+      <td width="53%"> - maximum speed the bug can take</td>
+      <td width="17%">particle (use bbClampSpeed)</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="17%" valign="top">[Diameter]</td>
+      <td width="13%" valign="top">&nbsp;</td>
+      <td width="53%">[todo]</td>
+      <td width="17%">&nbsp;</td>
+    </tr>
+  </table>
+</body>
+</html>

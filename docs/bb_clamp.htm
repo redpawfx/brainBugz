@@ -1,0 +1,86 @@
+<html>
+<head>
+<title>brainbugz Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="deta"></a>&nbsp;appendix</font></td>
+  </tr>
+</table>
+
+  
+<br>
+&nbsp; 
+<table width="95%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="3" color="#FFFFFF"><b><a name="de_cla"></a>&nbsp;script 
+        bbClampSpeed</b></font></td>
+    </tr>
+  </table>
+<p><b>Synopsis</b><br>
+  <font face="Courier New, Courier, mono" size="2">int bbClampSpeed(string $particleNode) 
+  </font></p>
+<p><b>ReturnValue</b><br>
+  1 if operation successfuly, 0 else</p>
+<p><b>Description</b><br>
+  This command makes modifications to a particle node, so that particle velocity 
+  can be min / max clamped. <br>
+  <br>
+  Modifications in detail: Attributes Minimum Speed and Maximum Speed are added:</p>
+
+  <table width="503" border="0">
+    <tr> 
+      <td bgcolor="#FFFFCC"> 
+        <p><font face="Courier New, Courier, mono" size="2">addAttr -sn mis -ln 
+          bbMinimumSpeed -dv 0.0 -min 0.0 -max 100;<br>
+          addAttr -sn ms -ln bbMaximumSpeed -dv 5.0 -min 0.001 -max 100;</font></p>
+      </td>
+    </tr>
+  </table>
+<p>Runtime expression is added to <b>velocity</b> in <b>Per Particle (Array) Attributes</b> 
+  - it clamps the length of the velocity vector while maintaining its orientation.<br>
+</p>
+<table width="368" border="0">
+    <tr> 
+      <td bgcolor="#FFFFCC"> 
+        <p><font face="Courier New, Courier, mono" size="2">$minS = particle.bbMinimumSpeed;<br>
+          $maxS = particle.bbMaximumSpeed;<br>
+          $vel &nbsp;= particle.velocity;<br>
+          </font><font face="Courier New, Courier, mono" size="2"><br>
+          $velLength = mag($vel);</font></p>
+        <p><font face="Courier New, Courier, mono" size="2">if ($velLength &gt; 
+          $maxS)<br>
+          {<br>
+          &nbsp;&nbsp;&nbsp;$vel *= $maxS / $velLength ;<br>
+          }<br>
+          else<br>
+          {<br>
+          &nbsp;&nbsp;&nbsp;if (($velLength &lt; $minS)&amp;&amp;($velLength &gt;0))<br>
+          &nbsp;&nbsp;&nbsp;{<br>
+          &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;$vel *= $minS /$velLength ;<br>
+          &nbsp;&nbsp;&nbsp;}<br>
+          }</font></p>
+        <p><font face="Courier New, Courier, mono" size="2">particle.velocity 
+          = $vel;</font></p>
+      </td>
+    </tr>
+  </table>
+
+<p>Finally <b>Expression after Dynamics</b> is set to true, so the expression 
+  will have the desired effect.</p>
+<p><b>Arguments</b><br>
+  <font face="Courier New, Courier, mono" size="2">string $particleNode</font> 
+  - particle node wich is to be modified</p>
+<p><b>Examples</b></p>
+<p>Create particle node <font face="Courier New, Courier, mono" size="2">particleShape1</font>, 
+  then enter :</p>
+<p><font face="Courier New, Courier, mono" size="2">bbClampSpeed particleShape1;<br>
+  </font></p>
+<p><b>Notes</b><br>
+  -/-</p>
+<p>&nbsp;</p>
+</body>
+</html>

@@ -1,0 +1,159 @@
+<html>
+<head>
+<title>brainbugz documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="inst"></a>&nbsp;steering 
+      desires - bug desires</font></td>
+  </tr>
+</table>
+  
+<br>
+&nbsp; 
+<table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdBhea"></a>&nbsp;head 
+        direction </font></td>
+    </tr>
+  </table>
+<p>- this desire causes the bug to head in the direction specified by 'Heading 
+  Direction' at 'Desired Speed'<br>
+  - if 'Heading Direction' equals nullVector, bug will move in current direction 
+  it is heading (defined by velocity) at 'Desired Speed'<br>
+  - produces zero result if 'Desired Speed' = 0</p>
+<p><img src="images/sd_BugHead.gif" width="150" height="100" border="1"></p>
+<p><img src="images/sdBugHeadAE.gif" width="348" height="70" border="1"></p>
+  <table width="92%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="3"><b>Head Direction Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="12%"><b>Heading Direction</b></td>
+      <td width="8%">vector</td>
+      <td width="80%" valign="top">- heading vector of the bug&nbsp;<br>
+        - just the direction will be used and not the length of the vector (so 
+        &lt;&lt;1.0;0.0;0.0&gt;&gt; equals &lt;&lt;3.0;0.0;0.0&gt;&gt;) </td>
+    </tr>
+  </table>
+<p><br>
+</p>
+  <table width="96%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="sdBwan"></a>&nbsp;wander</font></td>
+    </tr>
+  </table>
+<p>- a useful desire for adding a little randomness to a bug's motion (or a lot)<br>
+  - consider a sphere projected in front of the bug, initially the bug will move 
+  to the point on the sphere which is most far away, with each simulation step 
+  a small random vector will be added to this, reprojected back to the sphere, 
+  this resulting point on the sphere will be seeked now<br>
+  - the bigger the wander sphere radius, the more the bug will turn<br>
+  - a bigger wander range will make the bug &quot;turn happier&quot;<br>
+  - if you offset the sphere to the left or the right, you will force the bugs 
+  to do spins in that direction<br>
+</p>
+<p><img src="images/sd_wander.gif" width="258" height="143" border="1"></p>
+<p><img src="images/sdBugWanderAE.gif" width="358" height="334" border="1"></p>
+  <table width="90%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="3"><b>Wander Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Sphere Radius</b></td>
+      <td width="7%">double</td>
+      <td width="74%" valign="top"> - defines the radius of the wander sphere, 
+        this controls the range of possible turning angles (a small circle gives 
+        you relatively straight wandering, a big circle gives you more turning)</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Sphere Offset</b></td>
+      <td width="7%">vector</td>
+      <td width="74%" valign="top">- defines the wander spheres position relative 
+        to the bugs position and heading direction (as described by its velocity)<br>
+        - the relative position of the sphere allows you to control whether or 
+        not you generate backward facing vectors for amoeba like spins or bias 
+        steering to one side for spiralling effects and the size of the random 
+        vector controls the randomness of your wandering path</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Choose Speed</b></td>
+      <td width="7%">enum</td>
+      <td width="74%" valign="top">&quot;Desired Speed&quot;<br>
+        - the bug will try to move at the &quot;Desired Speed&quot; defined by 
+        &quot;General Bug Attributes&quot;<br>
+        <br>
+        &quot;Speed Range&quot;<br>
+        - the bug's speed will depend on the current position of the random point 
+        on the wander sphere: when it is the most far away from the bug it will 
+        go at &quot;Maximum Speed&quot;, when it is the most near at &quot;Minimum 
+        Speed&quot;, for positions between, speed will be determined linear</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Minimum Speed</b></td>
+      <td width="7%">double</td>
+      <td width="74%" valign="top">- active if &quot;Choose Speed&quot; is &quot;Speed 
+        Range&quot;<br>
+        - the bugs speed when the random pos on the wander sphere is nearest <br>
+        ( length(Sphere Offset) - Sphere Radius )</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Maximum Speed</b></td>
+      <td width="7%">double</td>
+      <td width="74%" valign="top">- active if &quot;Choose Speed&quot; is &quot;Speed 
+        Range&quot;<br>
+        - the bugs speed when the random pos on the wander sphere is most far<br>
+        ( length(Sphere Offset) + Sphere Radius ) </td>
+    </tr>
+  </table>
+<p><br>
+</p>
+  <table width="90%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="3"><b>Random Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Use Random</b></td>
+      <td width="7%">bool</td>
+      
+    <td width="74%" valign="top">[not implemeted yet]</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Inner Range</b></td>
+      <td width="7%">vector</td>
+      <td width="74%" valign="top">- the inner range used to determine the random 
+        vector<br>
+        - the size of the random vector controls the randomness of your wandering 
+        path <br>
+        - values for the random vector will be:<br>
+        &nbsp;&nbsp;(-outerRange &lt;= randomVector &lt;= -innerRange) and<br>
+        &nbsp;&nbsp;(+innerRange &lt;= randomVector &lt;= +outerRange) </td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Outer Range</b></td>
+      <td width="7%">vector</td>
+      <td width="74%" valign="top">- the outer range used to determine the random 
+        vector </td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Seed</b></td>
+      <td width="7%">double</td>
+      <td width="74%" valign="top">- seed value for pseudo random number generation 
+        for wander random vector determination</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="19%"><b>Init Seed Frame</b></td>
+      <td width="7%">double</td>
+      <td width="74%" valign="top"> 
+        <p>- frame at which pseudo random number generator will be initialized<br>
+          (bbSteeringDesire node attribute &quot;currentTime&quot; must be connected 
+          to &quot;time1.outTime&quot; for this to work - this will be done automatically 
+          if you use the Attribute Editor to edit steering desire attributes)</p>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>

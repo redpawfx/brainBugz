@@ -1,0 +1,371 @@
+<html>
+<head>
+<title>bRAINbUGZ Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0" height="36">
+  <tr> 
+    <td bgcolor="#003366" valign="bottom" height="33"> 
+      <p><font face="Arial, Helvetica, sans-serif" size="5" color="#FFFFFF"> &nbsp;<img src="images/bug1.gif" width="53" height="34"><i><b> 
+        bRAINbUGZ</b></i> <font size="4">&szlig;-Release 2</font></font></p>
+      </td>
+  </tr>
+</table>
+<p><font face="Arial, Helvetica, sans-serif"><a href="brainbugz.htm">TOC</a> | 
+  <a href="bb_setup.htm">PREVIOUS</a> | <a href="bb_combine.htm">NEXT</a></font></p>
+<blockquote> 
+  <p></p>
+</blockquote>
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="deta"></a>&nbsp;detailed 
+      node and script descriptions</font></td>
+  </tr>
+</table>
+<blockquote>
+  <p>[todo: attribute settings, hidden attributes]</p>
+  <table width="98%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>&nbsp;node 
+        bbSteeringDesire</font></td>
+    </tr>
+  </table>
+  <br>
+  <table width="98%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top"> 
+      <td colspan="5" bgcolor="#FFFFCC"><b>Common</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td rowspan="15" valign="top" width="15%"><b>Steering Desire</b></td>
+      <td rowspan="15" valign="top" width="6%">enum</td>
+      <td width="44%"><b>Bug Head Direction<br>
+        </b>- this desire causes the bug to head in the direction specified by 
+        'Heading Direction' at 'Desired Speed'<br>
+        - if 'Heading Direction' equals nullVector, bug will move in current direction 
+        it is heading (defined by velocity) at 'Desired Speed'<br>
+        -produces zero result if 'Desired Speed' = 0</td>
+      <td width="29%" valign="middle"><img src="images/sd_BugHead.gif" width="150" height="100"></td>
+      <td rowspan="15" width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"><b>Point Seek</b><br>
+        - seek desire causes the bug to align its orientation towards the specified 
+        target<br>
+        - if a bug continues to seek, it will pass through the target, then turn 
+        back to seek it again <br>
+        - produces zero result if 'Desired Speed'=0 or target not in field of 
+        view</td>
+      <td width="29%" align="left" valign="middle"><img src="images/sd_pSeek.gif" width="145" height="68"></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"><b>Point Moth Seek</b><br>
+        - moth seek desire is the same as seek, except that the bug is moving 
+        in orbital paths around the target, much like a moth buzzing around a 
+        light bulb <br>
+        - produces zero result if 'Desired Speed'=0 or target not in field of 
+        view</td>
+      <td width="29%" valign="middle"><img src="images/sd_pMothSeek.gif" width="199" height="122"></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"><b>Point Arrival</b><br>
+        - arrival is identical to seek behaviour when the bug is far away from 
+        the target, but if the target is in a predefined distance (Stopping Radius), 
+        the bug will try to slow down and eventually stop at the target <br>
+        - produces zero result if 'Desired Speed'=0 or target not in field of 
+        view</td>
+      <td width="29%" valign="middle"><img src="images/sd_pArrival.gif" width="221" height="106"></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"> 
+        <p><b>Curve Seek<br>
+          </b>- same steering desire as Point Seek, except targets are distributed 
+          on one or multiple 'Input Curves' (or you can use curve knots as targets, 
+          too) <b><br>
+          </b>- produces zero result if 'Desired Speed'=0 or target not in field 
+          of view (note, it is possible the curve is in field of view, but bug 
+          won't seek, because its specific target on the curve is not in field 
+          of view!)</p>
+      </td>
+      <td width="29%"><img src="images/sd_cSeek.gif" width="245" height="179"></td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"><b>Curve Moth Seek<br>
+        </b>- same as 'Point Moth Seek', take a look at 'Curve Seek' and you'll 
+        get the idea how it works<b><br>
+        </b>- produces zero result if 'Desired Speed'=0 or target not in field 
+        of view </td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"><b>Curve Arrival<br>
+        </b>- same as 'Point Arrival', take a look at 'Curve Seek' and you'll 
+        get the idea how it works <b><br>
+        </b>- produces zero result if 'Desired Speed'=0 or target not in field 
+        of view </td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"><b>Curve Following</b><br>
+        - bug estimates its future position on its current heading, then seeks 
+        the closest point on the curve to this future position<br>
+        - 'Sensor Range' serves as scaling factor for the current velocity to 
+        calculate the future position<br>
+        - bugs do (currently) follow the curve in no predefined direction<b><br>
+        </b>- field of view is currently not available with this steering desire<br>
+        - produces zero result if bug inside space defined by 'Target Radius'</td>
+      <td width="29%">&nbsp;<img src="images/sd_CurveFollowing.gif" width="233" height="181"></td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"> 
+        <p><b>Surface Seek<br>
+          </b>- same steering desire as Point Seek, except that targets are distributed 
+          on one or multiple 'Input Surfaces' (or you can use surface knots as 
+          targets, too) <br>
+          - produces zero result if 'Desired Speed'=0 or target not in field of 
+          view (note, it is possible the curve is in field of view, but bug won't 
+          seek, because its specific target on the curve is not in field of view!)</p>
+      </td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"><b>Surface Moth Seek<br>
+        </b>- produces zero result if 'Desired Speed'=0 or target not in field 
+        of view </td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"><b>Surface Arrival<br>
+        </b>- produces zero result if 'Desired Speed'=0 or target not in field 
+        of view </td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"> 
+        <p><b>Surface Following<br>
+          </b>- same steering desire as 'Curve Following' except the curve is 
+          a surface<b><br>
+          </b>- produces zero result if bug inside space defined by 'Target Radius' 
+        </p>
+        </td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"> 
+        <p><b>Neighbor Alignment</b><br>
+          - alignment steering desire forces the bug to align itself with the 
+          bugs in its viewing range<br>
+          - it will head in the same direction and try to adjust to the speed 
+          of the bugs nearby<br>
+          - produces zero result if no other bugs in field of view</p>
+      </td>
+      <td width="29%">&nbsp;<img src="images/sdNeighborAlign.gif" width="212" height="179"></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"><b>Neighbor Cohesion</b><br>
+        - Bugs with this desire will try to approach and form a group with other 
+        nearby bugs by heading for the average position of these bugs <br>
+        - produces zero result if no other bugs in field of view </td>
+      <td width="29%">&nbsp;<img src="images/sdNeighborCohesion.gif" width="149" height="167"></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="44%"><b>Neighbor Separation</b><br>
+        - this steering desire can be used to prevent bugs vom crowding together, 
+        it forces the character to steer away from the other bugs nearby<br>
+        - this produces good results when the bugs are aligned or the weight is 
+        relativly low regarding the maximum self applied force <br>
+        - produces zero result if no other bugs in field of view </td>
+      <td width="29%">&nbsp;<img src="images/sdNeighborSeparation.gif" width="220" height="179"></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%" valign="top"><b>Maximum Force</b></td>
+      <td width="6%" valign="top">double</td>
+      <td colspan="2"> 
+        <p>- in behavioural animation forces are self applied and hence limited, 
+          maximum force defines how much force a bug can apply for the specific 
+          steering desire</p>
+      </td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%" valign="top"><b>Inverse Desired Steering Force</b></td>
+      <td width="6%" valign="top">bool</td>
+      <td colspan="2">- if active, desired steering force is scaled with '-1', 
+        that means, e.g. seek will become flee</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Desired Speed</b></td>
+      <td width="6%">double</td>
+      <td colspan="2">- active if steering desire is target based<br>
+        - speed at which bug wants to reach target</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="5"><b>Field Of View Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Use Sensor Range</b></td>
+      <td width="6%">bool</td>
+      <td width="44%" valign="top">- check whether to use Sensor Range or not</td>
+      <td rowspan="4" width="29%" valign="middle"> &nbsp;<img src="images/bugstruc.gif" width="231" height="163"></td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Sensor Range</b></td>
+      <td width="6%">double</td>
+      <td width="44%" valign="top">- active if Use Sensor Range is checked<br>
+        - defines a distance at which bugs can sense other bugs or targets, think 
+        of a sphere with radius Sensor Range around the position of the bug</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Use Sensor Angle</b></td>
+      <td width="6%">bool</td>
+      <td width="44%" valign="top">- check whether to use Sensor Angle or not</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Sensor Angle</b></td>
+      <td width="6%">angle</td>
+      <td width="44%" valign="top">- active if Use Sensor Angle is checked<br>
+        - defines an angle around the heading vector of the bug in which it can 
+        sense bugs or targets, think of a cone which top is located at the position 
+        of the bug</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="5"><b>Bug Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Heading Direction</b></td>
+      <td width="6%">vector</td>
+      <td colspan="2">- the direction in which the bug will head, when using 'bug 
+        direction heading' steering desire<br>
+        - just the direction will be used and not the length of the vector (so 
+        &lt;&lt;1.0;0.0;0.0&gt;&gt; equals &lt;&lt;3.0;0.0;0.0&gt;&gt;)</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="5"><b>Target Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Input Point</b></td>
+      <td width="6%">vector</td>
+      <td colspan="2">- vector array attribute, connect all target points here<br>
+        - be sure to provide world positions only! (this will be the case, if 
+        you use 'bbConnect')</td>
+      <td width="6%">AC</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Input Curve</b></td>
+      <td width="6%">nurbs<br>
+        Curve</td>
+      <td colspan="2">- array attribute, connect all nurbsCurves here<br>
+        - be sure to provide curves in world space only! (this will be the case, 
+        if you use 'bbConnect')</td>
+      <td width="6%">AC</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Input Surface</b></td>
+      <td width="6%">nurbs<br>
+        Surface</td>
+      <td colspan="2">- array attribute, connect all nurbsSurfaces here<br>
+        - be sure to provide surfaces in world space only! (this will be the case, 
+        if you use 'bbConnect')</td>
+      <td width="6%">AC</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Stopping Range</b></td>
+      <td width="6%">double</td>
+      <td colspan="2">- active if steering desire is arrival<br>
+        - predefined distance at which the bug will try to slow down and stop 
+        at the target </td>
+      <td width="6%">KSC</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Target Radius</b></td>
+      <td width="6%">double</td>
+      <td colspan="2">- active if steering desire is following<br>
+        - defines area around curve / surface in which a bug thinks it is following 
+        the path and does not change its direction</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td rowspan="2" width="15%"><b>Sub Targets</b></td>
+      <td rowspan="2" width="6%">enum</td>
+      <td colspan="2"><b>Uniform<br>
+        </b>- targets are placed equidistant on curve or surface<br>
+        - if you experience, that targets are not uniformly placed on the specific 
+        geometry, then try to 'Rebuild Curve / Surface' and be sure to check radiobutton 
+        'uniform'<br>
+        - if 'Input Selection' is 'All Connected' targets will be distributed 
+        on connected curves / surfaces with respect to the different curve lengths 
+        / surface areas</td>
+      <td rowspan="2" width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"><b>Knots<br>
+        </b>- all knots of curve / surface will be used as targets</td>
+    </tr>
+    <tr valign="top"> 
+      <td rowspan="2" width="15%"><b> Input Selection</b></td>
+      <td rowspan="2" width="6%">enum</td>
+      <td colspan="2"><b>Index<br>
+        </b>- use point / curve / surface at steering desire specific array index 
+        ('Input Index')<b><br>
+        </b></td>
+      <td rowspan="2" width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td colspan="2"><b>All connected<br>
+        </b>- use all points / curves / surfaces connected to steering desire 
+        specific input <b></b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Input Index</b></td>
+      <td width="6%">short</td>
+      <td colspan="2">- specifies which input point / curve / surface is to be 
+        used, provide the index the desired geometry is attached to the respective 
+        array attribute </td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b> Tolerance</b></td>
+      <td width="6%">double</td>
+      <td colspan="2">- the amount of error (epsilon value) in the calculation, 
+        this is used when calculating points / distances to nurbs curves and surfaces<br>
+      </td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="5"><b>Combination Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Priority</b></td>
+      <td width="6%">short</td>
+      <td colspan="2">- priority steering desire has if combined with other desires</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Weight</b></td>
+      <td width="6%">short</td>
+      <td colspan="2">- weight steering desire has if combined with other desires</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top" bgcolor="#FFFFCC"> 
+      <td colspan="5"><b>Input / Output Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Input Data</b></td>
+      <td width="6%">comp</td>
+      <td colspan="2">- input data from particle nodes, contains positions / velocities 
+        / masses etc. of all bugs</td>
+      <td width="6%">&nbsp;</td>
+    </tr>
+    <tr valign="top"> 
+      <td width="15%"><b>Output Force</b></td>
+      <td width="6%">vector</td>
+      <td colspan="2">- the desired steering forces, calculated by the node</td>
+      <td width="6%">AC</td>
+    </tr>
+  </table>
+</blockquote>
+<blockquote>&nbsp;</blockquote>
+</body>
+</html>

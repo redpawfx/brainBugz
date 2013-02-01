@@ -1,0 +1,65 @@
+<html>
+<head>
+<title>bRAINbUGZ Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="inst"></a>&nbsp;installation</font></td>
+  </tr>
+</table>
+<p>- open the brainbugz.zip archive using your favourite zip-tool <br>
+  - extract the files from the folders to the specified destinations:</p>
+<table width="79%" border="1" cellpadding="0" cellspacing="0" bordercolor="#666666">
+  <tr> 
+    <td width="13%" bgcolor="#FFFFCC"><b>folder</b></td>
+    <td width="49%" bgcolor="#FFFFCC"><b>contents</b></td>
+    <td width="38%" bgcolor="#FFFFCC"><b>destination</b></td>
+  </tr>
+  <tr valign="top"> 
+    <td width="13%"><b>plugin</b></td>
+    <td width="49%">brainbugz.mll</td>
+    <td width="38%">~/maya/x.x/bin/plug-ins</td>
+  </tr>
+  <tr valign="top"> 
+    <td width="13%"><b>mel</b></td>
+    <td width="49%">bbCreateUI.mel<br>
+      bbDeleteUI.mel<br>
+      AEbbSteeringDesireTemplate.mel<br>
+      AEbbCombineForces.mel<br>
+      AEbbConnectionEditor.mel</td>
+    <td width="38%"><p>~/maya/x.x/scripts</p>
+    <p>(make sure it's in your MAYA_SCRIPT_PATH) </p></td>
+  </tr>
+  <tr valign="top"> 
+    <td width="13%"><b>images</b></td>
+    <td width="49%"> 
+      <p>bbCEA1.xpm<br>
+        bbCEA2.xpm<br>
+        bbCEA3.xpm<br>
+        out_bbCombineDesires.xpm<br>
+        out_bbSteeringDesire.xpm</p>
+    </td>
+    <td width="38%">~/maya/x.x/icons</td>
+  </tr>
+  <tr valign="top"> 
+    <td width="13%"><b>fti-icons</b></td>
+    <td width="49%">bbCombineDesires.fti<br>
+      bbSteeringDesire.fti<br>
+    </td>
+    <td width="38%">~/AW/Mayax.x/icons</td>
+  </tr>
+</table>
+<p>- start Maya<br>
+  - load plugin into Maya, using the <b>Plug-in Manager</b> (<b>Windows &gt; Settings/Preferences 
+  &gt; Plug-in Manager...</b>)<br>
+  - a new menu &quot;brainbugz&quot; will appear in the menu-bar, use this to 
+  envoke all commands related to brainbugz</p>
+<p><b>IMPORTANT: </b><br>
+  brainbugz uses the following node id's 0x3a001, 0x3a002 - these lie in the range 
+  designated by A|W for private use. If you are expriencing problems using the 
+  nodes, make sure these id's are not already used by other plugins!</p>
+</body>
+</html>

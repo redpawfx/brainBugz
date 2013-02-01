@@ -1,0 +1,319 @@
+global proc customTextNew(string $text)
+{
+	// delete proceeding text
+	string $token[];
+	int $numTokens = `tokenize $text "." $token`;
+	string $textC = $token[$numTokens-1];
+	
+	//	print text
+	text -l (" "+$textC) -al "left" -fn "boldLabelFont";
+}
+
+global proc customTextReplace(string $text)
+{ // do nothing 
+}
+
+// returns the number of elements connected to the attribute
+global proc int getNumberOfConnectedElements(string $attribute)
+{
+	string $temp[]=`listConnections -s true -d false $attribute`;
+	return size($temp);
+}
+
+
+// connection editor procs
+
+// display connection selection dialog window
+global proc connectSelect(string $nodeAttribute, string $connectNodeType[])
+{
+	// check if there is already a window and delete it
+	
+	if (`window -q -ex bbConnectWindow`)
+		deleteUI -window bbConnectWindow;
+	
+	// build ui
+
+	window -title ("bb (Dis)Connect Nodes") -rtf false -mnb false -mxb false  bbConnectWindow;
+   
+   	string $node = match("^.*[.]",$nodeAttribute);
+   	string $node = substring($node,1,size($node)-1); 	
+    
+    string $form = `formLayout -numberOfDivisions 100`;
+
+    string $title = `text -al "center" -l ("Disconnect / Connect Nodes for > "+$node+" <")`;
+	
+		
+	string $ncEditorF = `frameLayout -l "not connected" -bs "etchedOut" -la "center" -li 5 -mh 5 -mw 5`;
+		string $ncEditor = `outlinerEditor `;
+	setParent $form;
+		
+	string $cEditorF = `frameLayout -l "connected" -bs "etchedOut" -la "center" -li 5 -mh 5 -mw 5`;
+		string $cEditor = `outlinerEditor `;
+	setParent $form;
+	
+ 	
+	string $buttonNC2C =`button -l ">>"`;
+	string $buttonC2NC =`button -l "<<"`;
+ 
+ 
+ 
+    formLayout -edit
+    	-attachForm     $title     "top"    1
+    	-attachForm     $title     "left"   1
+    	-attachNone 	$title     "bottom" 
+    	-attachForm 	$title     "right"  1 
+
+	   	-attachControl  $ncEditorF    "top"    5 $title
+    	-attachForm     $ncEditorF    "left"   1
+    	-attachForm     $ncEditorF    "bottom" 1
+    	-attachPosition	$ncEditorF    "right"  1 40 
+
+    	-attachControl  $buttonNC2C     "top"    30 $title
+    	-attachControl 	$buttonNC2C     "left"   5 $ncEditorF
+    	-attachNone		$buttonNC2C     "bottom"  
+    	-attachControl	$buttonNC2C     "right"  5 $cEditorF  
+
+		-attachControl  $buttonC2NC      "top"    5 $buttonNC2C
+    	-attachControl  $buttonC2NC     "left"   5 $ncEditorF
+    	-attachNone		$buttonC2NC     "bottom" 
+    	-attachControl	$buttonC2NC     "right"  5 $cEditorF  
+
+	   	-attachControl  $cEditorF    "top"    5 $title
+    	-attachPosition $cEditorF    "left"   1 60 
+    	-attachForm     $cEditorF    "bottom" 1
+    	-attachForm 	$cEditorF    "right"  1 
+
+    $form;
+
+ 
+	// set up selectionConnection
+	
+	string $inputList = `selectionConnection -wl`;
+	string $ncEditorList =`selectionConnection`;
+	string $cEditorList =`selectionConnection`;
+		
+	// connect with editors
+	
+	editor -edit -mainListConnection $inputList $ncEditor;
+	editor -edit -mainListConnection $inputList $cEditor;
+	editor -edit -selectionConnection $ncEditorList $ncEditor;
+	editor -edit -selectionConnection $cEditorList $cEditor;
+	
+	
+	// create filter for all connectable nodes
+	int $typeCount = size($connectNodeType);
+	int $typeI =0;
+	string $temp="";
+	
+	for ($typeI; $typeI<$typeCount; $typeI++)
+		$temp +=("-byType "+$connectNodeType[$typeI]+" ");
+	
+	string $notNodeFilter = eval("itemFilter -byName "+$node+" -negate true");
+	string $connectableTypeFilter = eval("itemFilter "+$temp);
+	string  $connectableFilter = `itemFilter -intersect $notNodeFilter $connectableTypeFilter`;
+	
+	// create filter for all connected nodes
+	
+	string $connectedFilter =`itemFilter -secondScript ("cFilterProc "+$nodeAttribute) `;
+	
+	// create filter for all not connected nodes
+	
+	string $notConnectedFilter =`itemFilter -difference $connectableFilter $connectedFilter  `;
+	
+	// attach filter to editors
+	
+	outlinerEditor -edit -filter $notConnectedFilter  -dag false -ats true $ncEditor;
+	outlinerEditor -edit -filter $connectedFilter  -dag false -ats true $cEditor;
+	
+	// attach functionality to buttons
+	button -edit -command ("connectElements "+$ncEditorList+" "+$nodeAttribute+" "+$node+" bbConnectWindow") $buttonNC2C;
+	button -edit -command ("disconnectElements "+$cEditorList+" "+$nodeAttribute+" "+$node) $buttonC2NC;
+		
+	showWindow bbConnectWindow;
+	
+	// create script job to clean up after window is closed
+	// script job to delete window when node is delteted
+	
+  
+	// create script job to clean up after window is closed
+	
+	scriptJob -uiDeleted bbConnectWindow ("deleteUI "+ $inputList +";"+
+										  "deleteUI "+ $ncEditorList +";"+
+										  "deleteUI "+ $cEditorList  +";"+
+										  "delete "+$connectableFilter+";"+
+										  "delete "+$connectedFilter+";"+
+										  "delete "+$notConnectedFilter+";"+
+										  "delete "+$notNodeFilter+";"+
+										  "delete "+$connectableTypeFilter+";" );
+}
+
+
+global proc string[] cFilterProc( string $attribute, string $name[] )
+{
+ 
+  if (! `objExists $attribute`) 
+  {
+    return {""};
+    quit;
+  }
+  
+  // get list of nodes connected to attribute 
+  string $plugs[] = `listConnections -p true -s true -d false $attribute`;
+
+  for ($i = 0; $i < size($plugs); $i++) 
+  {
+    string $plug = $plugs[$i];
+    string $attr = match("^.*[.]",$plug);
+    string $attr = substring($attr,1,size($attr)-1);
+    $plugs[$i] = $attr;
+  }
+  
+ return $plugs;
+}
+
+global proc connectElements( string $ncS, string $nodeAttribute,string $node, string $window)
+{
+	// check if node still exists
+	
+	if (`objExists $node`)
+	{
+		// get elements to connect
+		string $tcE[] = `selectionConnection -q -object $ncS`;
+		
+		// get elements currently connected
+		string $cE[] = cFilterProc($nodeAttribute,$tcE);
+		
+		// merge the arrays
+		string $x;
+		for ($x in $tcE)
+		{
+			$cE[size($cE)] = $x;
+		}
+		
+		// delete all current connections
+		deleteConnections($nodeAttribute);
+				
+		// connect the merged array
+		string $shape;
+		string $cE[] = sort($cE);
+		int $cENum = size($cE);
+		
+		for ($index=0;$index<$cENum;$index++)
+		{
+			$shape = getShape($cE[$index]);
+			bbConnect $shape $node $index;
+		}
+		
+		// delete elements from sc
+		updateUI();
+	}
+	else
+	{
+		// warn user that node does not exist
+		confirmDialog -title "Error detected" -message ("Node > "+$node+" < does not exist, closing window!") -button "OK"
+   		 -defaultButton "OK" -cancelButton "OK" -dismissString "No";
+   		deleteUI $window;
+
+
+	}
+	select $node;
+	
+}
+
+global proc disconnectElements( string $cS, string $nodeAttribute,string $node)
+{
+	
+	// get elements to disconnnect
+	string $dE[] = `selectionConnection -q -object $cS`;
+	
+	// get shapes of elements to disconnect
+	string $dES[];
+	string $x;
+	for ($x in $dE)
+	{
+		$dES[size($dES)] = getShape($x);
+	}
+	
+	// get  connnect elements
+	string $cE[] = cFilterProc($nodeAttribute,$dES);
+	
+	// difference  the two arrays to get elements that will be connected after disconnect
+	string $cE[] = subtractStringArray($dES,$cE);
+	
+	// delete all current connections
+	
+	deleteConnections($nodeAttribute);
+	
+	// connect the merged array
+	string $cE[] = sort($cE);
+	
+	int $index;
+	int $cENum = size($cE);
+	
+	for ($index=0;$index<$cENum;$index++)
+	{
+		bbConnect $cE[$index] $node $index;
+	}
+	
+	updateUI();
+	select $node;
+}
+
+global proc deleteConnections(string $nodeAttribute)
+{
+	// get connected elements pairs
+		string $cep[] = eval("listConnections -p true -c true "+$nodeAttribute);
+		int $cepNum = size($cep);
+		
+		// disconnect element pairs
+		int $index =1;
+		for ($index; $index<$cepNum; $index += 2)
+			disconnectAttr $cep[$index] $cep[$index-1];
+}
+
+global proc string getShape( string $xform )
+{
+  string $shapes[];
+  
+  $shapes[0] = $xform;
+  
+  // If given node is not a transform, assume it is a shape 
+  // and pass it through.
+  if ( "transform" == `nodeType $xform` )
+  {
+    $shapes = `listRelatives  -shapes $xform`;
+  }
+  
+  return $shapes[0];
+}
+
+global proc string[] subtractStringArray (string $array1[], string $array2[])
+{
+	string $x;
+	string $y;
+	string $newArray[];
+	int $itemFound = 0;
+
+
+	for ($x in $array2)
+	{
+		$itemFound = 0;
+		for ($y in $array1)
+		{
+			if ($x == $y) {$itemFound = 1;}
+		}
+		if ($itemFound == 0) {$newArray[size($newArray)] = $x;}
+	}
+
+	return ($newArray);
+}
+
+global proc updateUI()
+{
+	// selectionCollection is updated when nodes are created or deleted
+	// so create something and delete it at once
+	
+	string $locator[] = `spaceLocator`;
+	delete $locator;
+	
+}

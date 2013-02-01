@@ -1,0 +1,80 @@
+<html>
+<head>
+<title>bRAINbUGZ Documentation</title>
+<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
+</head>
+
+<body bgcolor="#FFFFFF" text="#000000">
+<blockquote> 
+  <p></p>
+</blockquote>
+<table width="100%" border="0">
+  <tr> 
+    <td bgcolor="#003366"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="deta"></a>&nbsp;combining 
+      desires</font></td>
+  </tr>
+</table>
+<p>- create a bbCombineDesire node using the brainbugz menu items<br>
+  - a bbCombineDesire node allows you to combine different steering desires (or 
+  any other field force) to produce higher level desires<br>
+  - choose witch steering desires to use, by clicking the &quot;DisConnect Desire 
+  Field Combiner&quot; button or using the &quot;<a href="bb_connect.htm">Connection 
+  Editor</a>&quot;</p>
+
+  <table width="98%" border="0">
+    <tr> 
+      <td bgcolor="#005BB7"><font face="Arial, Helvetica, sans-serif" size="4" color="#FFFFFF"><a name="know"></a>&nbsp;bbCombineDesires</font></td>
+    </tr>
+  </table>
+<p><img src="images/cdAE.gif" width="354" height="219" border="1"></p>
+
+  <table width="98%" border="1" cellspacing="0" cellpadding="0" bordercolor="#666666">
+    <tr valign="top"> 
+      <td colspan="4" bordercolor="#666666" bgcolor="#FFFFCC"><b>Combine Desires 
+        Attributes</b></td>
+    </tr>
+    <tr valign="top"> 
+      <td width="10%" height="487"><b>Combine Mode</b></td>
+      <td width="6%" height="487">enum</td>
+      <td colspan="2" height="487"> 
+        <p>&quot;Linear&quot;<br>
+          - all steering desires are linearly combined, all steering behaviours 
+          have the same influence<br>
+          - only desires not null are taken into account</p>
+        <p>&quot;Weights&quot;<br>
+          - the steering desires are combined using weight factors you have to 
+          provide <br>
+          - if all steering desires have the same weight factor, this combination 
+          mode equals linear combination<br>
+          - if not enough weight factors are provided, factor '1' is assumed<br>
+          - only forces not null are taken into account</p>
+        <p>&quot;Priority&quot;<br>
+          - providing a priority-value for a steering behaviour means defining 
+          its position in a priority list<br>
+          - lower values indicate higher priority as these steering desires are 
+          the first to be evaluated <br>
+          - only if a higher priorized steering desire produces no result (that 
+          means, a steering desire produced a null vector), the next lower desire 
+          is evaluated<br>
+          - if you want to be sure that a steering desire has full effect when 
+          its needed, this combine mode produces good results<br>
+          - if desires have the same priority only the first (in respect to the 
+          connection index) is evaluated</p>
+        <p>&quot;Selection&quot;<br>
+          - manually define the desire to be used using 'Selected Force'<br>
+          - use this to switch between different steering desires or sets of steering 
+          desires (in case you have a hirachy of bbCombineForces nodes)</p>
+      </td>
+    </tr>
+    <tr valign="top"> 
+      <td width="10%"><b>Desire Index</b></td>
+      <td width="6%">short</td>
+      <td colspan="2">- active if Combine Mode = Selection and steering desires 
+        are connected<br>
+        - defines which steering desire to use, enter the index of the connected 
+        desire</td>
+    </tr>
+  </table>
+<p>&nbsp;</p>
+</body>
+</html>
