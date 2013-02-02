@@ -2241,7 +2241,7 @@ void bbSteeringDesire::sdNeighborAlignment( MDataBlock& block,
             {
                 desiredVelocityV += velocities[nearbyBugIndexList[j]];
             }
-            desiredVelocityV *= 1/nearbyBugIndexListSize;
+            desiredVelocityV *= 1.0/float(nearbyBugIndexListSize);
             desiredVelocityV =  desiredVelocityV - velocities[i];
 
             desiredVelocityV *= scaleDesiredForceV;
@@ -2322,7 +2322,7 @@ void bbSteeringDesire::sdNeighborCohesion( MDataBlock& block,
 
 			//temp="";
 
-            desiredVelocityV = positions[i];
+            desiredVelocityV = MVector::zero;
 
             for (j=0; j < nearbyBugIndexListSize; j++)
             {
@@ -2332,11 +2332,8 @@ void bbSteeringDesire::sdNeighborCohesion( MDataBlock& block,
             }
             //
 			//MGlobal::displayInfo(temp);
-
-            desiredVelocityV *= 1/nearbyBugIndexListSize;
-			// this would make everything flock to the origin
-            //desiredVelocityV = desiredVelocityV - positions[i];
-
+            desiredVelocityV *= 1.0/float(nearbyBugIndexListSize);
+            desiredVelocityV = desiredVelocityV - positions[i];
             desiredVelocityV *= scaleDesiredForceV;
             truncVector(desiredVelocityV,maximumForceV);
             outputForce.append( desiredVelocityV );
@@ -2346,7 +2343,6 @@ void bbSteeringDesire::sdNeighborCohesion( MDataBlock& block,
             outputForce.append(noForceV);
         }
     }
-
     nearbyBugIndexList.clear();
 }
 
@@ -2406,7 +2402,7 @@ void bbSteeringDesire::sdNeighborSeparation( MDataBlock& block,
                 desiredVelocityV += positionOffset;
             }
 
-            desiredVelocityV *= 1/nearbyBugIndexListSize;
+            desiredVelocityV *= 1.0/float(nearbyBugIndexListSize);
 
             desiredVelocityV *= scaleDesiredForceV;
             truncVector(desiredVelocityV,maximumForceV);
