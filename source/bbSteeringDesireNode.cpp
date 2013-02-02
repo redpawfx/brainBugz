@@ -820,7 +820,10 @@ void getNearbyBugs(const MVectorArray& bugPositions, int refBugIndex,const MVect
     {
         for (i; i < bugPositionsSize; i++)
         {
-            nearbyBugIndexList.append(i);
+			if (i != refBugIndex)
+			{
+				nearbyBugIndexList.append(i);
+			}
         }
     }
     else
@@ -832,7 +835,7 @@ void getNearbyBugs(const MVectorArray& bugPositions, int refBugIndex,const MVect
 
             for (i=0;i < bugPositionsSize; i++)
             {
-                if (!(i==refBugIndex))
+                if (i != refBugIndex)
                 {
                     if (MVector(bugPositions[refBugIndex] - bugPositions[i]).length() < sRange)
                     {
@@ -849,7 +852,10 @@ void getNearbyBugs(const MVectorArray& bugPositions, int refBugIndex,const MVect
         {
             for (i; i < bugPositionsSize; i++)
             {
-                nearbyBugIndexList.append(i);
+				if (i != refBugIndex)
+                {
+					nearbyBugIndexList.append(i);
+				}
             }
         }
 
@@ -2295,11 +2301,11 @@ void bbSteeringDesire::sdNeighborCohesion( MDataBlock& block,
     int nearbyBugIndexListSize;
 
     MString temp;
-//	temp ="bug: ";
-//	temp += i;
+	//temp ="bug: ";
+	//temp += i;
 
-//	MGlobal::displayError(temp);
-//	temp ="";
+	//MGlobal::displayError(temp);
+	//temp ="";
 
 
     for (i; i < posSize; i ++ )
@@ -2307,28 +2313,29 @@ void bbSteeringDesire::sdNeighborCohesion( MDataBlock& block,
         getNearbyBugs(positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList);
         nearbyBugIndexListSize= nearbyBugIndexList.length();
 
-//		temp ="bug: ";
-//		temp += i;
-//		MGlobal::displayError(temp);
+		//temp ="bug: ";
+		//temp += i;
+		//MGlobal::displayError(temp);
 
         if (nearbyBugIndexListSize > 0)
         {
 
-//			temp="";
+			//temp="";
 
-            desiredVelocityV = MVector::zero;
+            desiredVelocityV = positions[i];
 
             for (j=0; j < nearbyBugIndexListSize; j++)
             {
-//				temp += nearbyBugIndexList[j];
-//				temp += ", ";
+				//temp += nearbyBugIndexList[j];
+				//temp += ", ";
                 desiredVelocityV += positions[nearbyBugIndexList[j]];
             }
             //
-//			MGlobal::displayInfo(temp);
+			//MGlobal::displayInfo(temp);
 
             desiredVelocityV *= 1/nearbyBugIndexListSize;
-            desiredVelocityV = desiredVelocityV - positions[i];
+			// this would make everything flock to the origin
+            //desiredVelocityV = desiredVelocityV - positions[i];
 
             desiredVelocityV *= scaleDesiredForceV;
             truncVector(desiredVelocityV,maximumForceV);
