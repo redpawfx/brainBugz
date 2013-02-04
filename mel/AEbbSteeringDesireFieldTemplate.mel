@@ -26,6 +26,7 @@ global proc AEbbSteeringDesireFieldTemplate( string $nodeName )
 			editorTemplate -addSeparator;
 			editorTemplate -callCustom "customTextNew" "customTextReplace" "Physical Attributes";
 			editorTemplate -addControl "bugRadius";
+			editorTemplate -addControl "minimumForce";
 			editorTemplate -addControl "maximumForce";
 			editorTemplate -addControl "inverseDesiredSteeringForce";
 			editorTemplate -addControl "desiredSpeed";
@@ -123,7 +124,7 @@ global proc AEbbSteeringDesireFieldTemplate( string $nodeName )
 		editorTemplate -suppress "inputIndex";
 
 		AEfieldInclude $nodeName;
-	AEtransformMain $nodeName;
+	//AEtransformMain $nodeName;
 	editorTemplate -addExtraControls;
 	editorTemplate -endScrollLayout;
 

@@ -27,6 +27,29 @@ global proc bbSteeringDesire()
 {
     string $nodeName = `createNode bbSteeringDesireField`;
     $nodeName = `rename $nodeName "bbSD#"`;
+    setAttr -k off ($nodeName+".applyPerVertex");
+	setAttr -k off ($nodeName+".attenuation");
+	setAttr -k off ($nodeName+".axialMagnitude[0].axialMagnitude_FloatValue");
+	setAttr -k off ($nodeName+".axialMagnitude[0].axialMagnitude_Interp");
+	setAttr -k off ($nodeName+".axialMagnitude[0].axialMagnitude_Position");
+	setAttr -k off ($nodeName+".curveRadius[0].curveRadius_FloatValue");
+	setAttr -k off ($nodeName+".curveRadius[0].curveRadius_Interp");
+	setAttr -k off ($nodeName+".curveRadius[0].curveRadius_Position");
+	setAttr -k off ($nodeName+".falloffCurve[0].falloffCurve_FloatValue");
+	setAttr -k off ($nodeName+". falloffCurve[0].falloffCurve_Interp");
+	setAttr -k off ($nodeName+".falloffCurve[0].falloffCurve_Position");
+	setAttr -k off ($nodeName+".maxDistance");
+	setAttr -k off ($nodeName+".sectionRadius");
+	setAttr -k off ($nodeName+".trapEnds");
+	setAttr -k off ($nodeName+".trapInside");
+	setAttr -k off ($nodeName+".trapRadius");
+	setAttr -k off ($nodeName+".useMaxDistance");
+	setAttr -k off ($nodeName+".volumeExclusion");
+	setAttr -k off ($nodeName+".volumeOffsetX");
+	setAttr -k off ($nodeName+".volumeOffsetY");
+	setAttr -k off ($nodeName+".volumeOffsetZ");
+	setAttr -k off ($nodeName+".volumeShape");
+	setAttr -k off ($nodeName+".volumeSweep");
 }
 
 //

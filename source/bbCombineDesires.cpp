@@ -26,7 +26,7 @@
 #include "MTools.h"
 
 // official redpawfx Autodesk ID ID_BRAINBUGZ_COMBINEDESIRE
-MTypeId     bbCombineDesires::id( 0x0011A305 );
+MTypeId     bbCombineDesires::id ( 0x0011A305 );
 
 // definitions
 
@@ -59,7 +59,7 @@ bbCombineDesires::bbCombineDesires() {}
 bbCombineDesires::~bbCombineDesires() {}
 
 /************************************************************************************/
-MStatus bbCombineDesires::compute( const MPlug& plug, MDataBlock& data )
+MStatus bbCombineDesires::compute ( const MPlug& plug, MDataBlock& data )
 {
     MStatus stat;
 //	MGlobal::displayInfo("compute");
@@ -67,12 +67,12 @@ MStatus bbCombineDesires::compute( const MPlug& plug, MDataBlock& data )
     if ( plug == outputForce )
     {
         // get input forces
-        MArrayDataHandle inputForceAD = data.inputArrayValue( inputForce, &stat);
-        McheckErr(stat,"bbCombineDesires::compute inputPrioritiesArrayData");
+        MArrayDataHandle inputForceAD = data.inputArrayValue ( inputForce, &stat );
+        McheckErr ( stat,"bbCombineDesires::compute inputPrioritiesArrayData" );
         int numForces  = inputForceAD.elementCount();
-        inputForceAD.jumpToElement(0);
+        inputForceAD.jumpToElement ( 0 );
 
-        if (numForces > 0)
+        if ( numForces > 0 )
         {
 
             // check size of input arrays weights priorities dithering factors
@@ -102,7 +102,7 @@ MStatus bbCombineDesires::compute( const MPlug& plug, MDataBlock& data )
             			}
             */
             // get combine forces
-            short combineModeV = combineModeValue(data);
+            short combineModeV = combineModeValue ( data );
 
             // create needed variables
             MVectorArray outForces;
@@ -110,34 +110,34 @@ MStatus bbCombineDesires::compute( const MPlug& plug, MDataBlock& data )
             switch ( combineModeV )
             {
             case CM_LINEAR:
-                cdLinear(inputForceAD,numForces,outForces);
+                cdLinear ( inputForceAD,numForces,outForces );
                 break;
             case CM_WEIGHTS:
-                cdWeights(inputForceAD,numForces,data,outForces);
+                cdWeights ( inputForceAD,numForces,data,outForces );
                 break;
             case CM_PRIORITY:
-                cdPriorities(inputForceAD,numForces,data,outForces);
+                cdPriorities ( inputForceAD,numForces,data,outForces );
                 break;
             case CM_SELECT:
-                cdSelect(inputForceAD,data,outForces);
+                cdSelect ( inputForceAD,data,outForces );
                 break;
             }
 
             // get output force array from block.
             //
 
-            MDataHandle hOut = data.outputValue( outputForce, &stat);
-            McheckErr(stat, "ERROR in hOut = bOutArray.addElement.\n");
+            MDataHandle hOut = data.outputValue ( outputForce, &stat );
+            McheckErr ( stat, "ERROR in hOut = bOutArray.addElement.\n" );
 
             MFnVectorArrayData fnOutputForce;
-            MObject dOutputForce = fnOutputForce.create( outForces, &stat );
+            MObject dOutputForce = fnOutputForce.create ( outForces, &stat );
 
-            McheckErr(stat, "ERROR in dOutputForce = fnOutputForce.create\n");
+            McheckErr ( stat, "ERROR in dOutputForce = fnOutputForce.create\n" );
 
             // update data block with new output force data.
             //
-            hOut.set( dOutputForce );
-            data.setClean( plug );
+            hOut.set ( dOutputForce );
+            data.setClean ( plug );
 
             // store influence data
 
@@ -161,7 +161,7 @@ MStatus bbCombineDesires::compute( const MPlug& plug, MDataBlock& data )
 /************************************************************************************/
 // linear combination
 
-void bbCombineDesires::cdLinear(MArrayDataHandle &inputForceAD,int numForces,MVectorArray &outForces)
+void bbCombineDesires::cdLinear ( MArrayDataHandle &inputForceAD,int numForces,MVectorArray &outForces )
 {
     MStatus stat;
     MDataHandle elementHandle;
@@ -171,40 +171,40 @@ void bbCombineDesires::cdLinear(MArrayDataHandle &inputForceAD,int numForces,MVe
     int eI; // element iterator;
 
     // get first force element
-    inputForceAD.jumpToElement(0);
-    MDataHandle hCurrForces = inputForceAD.inputValue(&stat);
+    inputForceAD.jumpToElement ( 0 );
+    MDataHandle hCurrForces = inputForceAD.inputValue ( &stat );
     MObject dCurrForces = hCurrForces.data();
-    currForces = MFnVectorArrayData(dCurrForces).array(&stat);
+    currForces = MFnVectorArrayData ( dCurrForces ).array ( &stat );
 
     int forcesSize = currForces.length();
 
     // variables to store weights
-    MIntArray weights(numForces,0);
-    MIntArray weightsSum(forcesSize,0);
+    MIntArray weights ( numForces,0 );
+    MIntArray weightsSum ( forcesSize,0 );
 
-    outForces.copy(currForces);
+    outForces.copy ( currForces );
 
 
-    for (aI=1; aI<numForces;aI++)
+    for ( aI=1; aI<numForces; aI++ )
     {
         inputForceAD.next();
         currForces.clear();
 
-        hCurrForces = inputForceAD.inputValue(&stat);
+        hCurrForces = inputForceAD.inputValue ( &stat );
         dCurrForces = hCurrForces.data();
 
-        currForces.copy(MFnVectorArrayData(dCurrForces).array(&stat));
+        currForces.copy ( MFnVectorArrayData ( dCurrForces ).array ( &stat ) );
 
-        for (eI=0; eI<forcesSize; eI++)
-            if (currForces[eI] != MVector::zero)
+        for ( eI=0; eI<forcesSize; eI++ )
+            if ( currForces[eI] != MVector::zero )
             {
                 outForces[eI] += currForces[eI];
                 weightsSum[eI] += 1;
             }
     }
 
-    for (eI=0; eI<forcesSize; eI++)
-        if (weightsSum[eI]>0)
+    for ( eI=0; eI<forcesSize; eI++ )
+        if ( weightsSum[eI]>0 )
             outForces[eI] *= 1/weightsSum[eI];
 
     weights.clear();
@@ -214,23 +214,23 @@ void bbCombineDesires::cdLinear(MArrayDataHandle &inputForceAD,int numForces,MVe
 /************************************************************************************/
 // get weights
 
-MDoubleArray bbCombineDesires::getWeights(MDataBlock& data, int numForces)
+MDoubleArray bbCombineDesires::getWeights ( MDataBlock& data, int numForces )
 {
     MStatus stat;
     MDataHandle elementHandle;
 
-    MArrayDataHandle weightAD = data.inputArrayValue( weight, &stat);
-    McheckErr(stat,"bbCombineForces::getWeights inputWeightsArrayData");
+    MArrayDataHandle weightAD = data.inputArrayValue ( weight, &stat );
+    McheckErr ( stat,"bbCombineForces::getWeights inputWeightsArrayData" );
 
     int numWeights = weightAD.elementCount();
-    MDoubleArray weights(numForces, DEFAULT_WEIGHT);
+    MDoubleArray weights ( numForces, DEFAULT_WEIGHT );
 
-    for (int i=0; i < numWeights; i++)
+    for ( int i=0; i < numWeights; i++ )
     {
-        stat = weightAD.jumpToElement(i);
-        if (stat == MS::kSuccess )
+        stat = weightAD.jumpToElement ( i );
+        if ( stat == MS::kSuccess )
         {
-            elementHandle = weightAD.inputValue(&stat);
+            elementHandle = weightAD.inputValue ( &stat );
             weights[i] = elementHandle.asDouble();
         }
     }
@@ -240,26 +240,26 @@ MDoubleArray bbCombineDesires::getWeights(MDataBlock& data, int numForces)
 /************************************************************************************/
 // get priorities
 
-MIntArray bbCombineDesires::getPriorities(MDataBlock& data, int numForces)
+MIntArray bbCombineDesires::getPriorities ( MDataBlock& data, int numForces )
 {
     MStatus stat;
     MDataHandle elementHandle;
 
-    MArrayDataHandle priorityAD = data.inputArrayValue( priority, &stat);
-    McheckErr(stat,"bbCombineForces::getPriorities inputPrioritiesArrayData");
+    MArrayDataHandle priorityAD = data.inputArrayValue ( priority, &stat );
+    McheckErr ( stat,"bbCombineForces::getPriorities inputPrioritiesArrayData" );
 
     int numPriorities = priorityAD.elementCount();
 
 //	cout << "\nnumPrio: " << 	numPriorities ;
 
-    MIntArray priorities(numForces, DEFAULT_PRIORITY);
+    MIntArray priorities ( numForces, DEFAULT_PRIORITY );
 
-    for (int i=0; i < numPriorities; i++)
+    for ( int i=0; i < numPriorities; i++ )
     {
-        stat = priorityAD.jumpToElement(i);
-        if (stat == MS::kSuccess )
+        stat = priorityAD.jumpToElement ( i );
+        if ( stat == MS::kSuccess )
         {
-            elementHandle = priorityAD.inputValue(&stat);
+            elementHandle = priorityAD.inputValue ( &stat );
             priorities[i] = elementHandle.asShort();
 //				cout << "\n+ ";
         }
@@ -272,7 +272,7 @@ MIntArray bbCombineDesires::getPriorities(MDataBlock& data, int numForces)
 /************************************************************************************/
 // weighted combination
 
-void bbCombineDesires::cdWeights(MArrayDataHandle &inputForceAD,int numForces, MDataBlock& data, MVectorArray &outForces)
+void bbCombineDesires::cdWeights ( MArrayDataHandle &inputForceAD,int numForces, MDataBlock& data, MVectorArray &outForces )
 {
     MStatus stat;
     MDataHandle elementHandle;
@@ -283,33 +283,33 @@ void bbCombineDesires::cdWeights(MArrayDataHandle &inputForceAD,int numForces, M
 
 
     // get weights
-    MDoubleArray weights = getWeights(data, numForces);
+    MDoubleArray weights = getWeights ( data, numForces );
 
 
     // get first force element
-    inputForceAD.jumpToElement(0);
-    MDataHandle hCurrForces = inputForceAD.inputValue(&stat);
+    inputForceAD.jumpToElement ( 0 );
+    MDataHandle hCurrForces = inputForceAD.inputValue ( &stat );
     MObject dCurrForces = hCurrForces.data();
-    currForces = MFnVectorArrayData(dCurrForces).array(&stat);
+    currForces = MFnVectorArrayData ( dCurrForces ).array ( &stat );
 
     int forcesSize = currForces.length();
 
     // variables to store weights
-    MDoubleArray weightsSum(forcesSize,0);
-    MVectorArray emptyForces(forcesSize, MVector::zero);
+    MDoubleArray weightsSum ( forcesSize,0 );
+    MVectorArray emptyForces ( forcesSize, MVector::zero );
 
-    outForces.copy(emptyForces);
+    outForces.copy ( emptyForces );
 
     // compute outForce on basis of handles
-    for (aI=0; aI<numForces;aI++)
+    for ( aI=0; aI<numForces; aI++ )
     {
-        hCurrForces = inputForceAD.inputValue(&stat);
+        hCurrForces = inputForceAD.inputValue ( &stat );
         dCurrForces = hCurrForces.data();
 
-        currForces.copy(MFnVectorArrayData(dCurrForces).array(&stat));
+        currForces.copy ( MFnVectorArrayData ( dCurrForces ).array ( &stat ) );
 
-        for (eI=0; eI<forcesSize; eI++)
-            if (currForces[eI] != MVector::zero)
+        for ( eI=0; eI<forcesSize; eI++ )
+            if ( currForces[eI] != MVector::zero )
             {
                 outForces[eI] += currForces[eI] * weights[aI] ;
                 weightsSum[eI] += weights[aI];
@@ -321,9 +321,9 @@ void bbCombineDesires::cdWeights(MArrayDataHandle &inputForceAD,int numForces, M
 
     // scale outForce with weightedSum
 
-    for (eI=0; eI<forcesSize; eI++)
-        if (weightsSum[eI]>0)
-            outForces[eI] = outForces[eI] * 1/double(weightsSum[eI]);
+    for ( eI=0; eI<forcesSize; eI++ )
+        if ( weightsSum[eI]>0 )
+            outForces[eI] = outForces[eI] * 1/double ( weightsSum[eI] );
 
     weightsSum.clear();
 }
@@ -331,7 +331,7 @@ void bbCombineDesires::cdWeights(MArrayDataHandle &inputForceAD,int numForces, M
 /************************************************************************************/
 //priorized combination
 
-void bbCombineDesires::cdPriorities(MArrayDataHandle &inputForceAD,int numForces, MDataBlock& data, MVectorArray &outForces)
+void bbCombineDesires::cdPriorities ( MArrayDataHandle &inputForceAD,int numForces, MDataBlock& data, MVectorArray &outForces )
 {
     MStatus stat;
     MDataHandle elementHandle;
@@ -342,34 +342,34 @@ void bbCombineDesires::cdPriorities(MArrayDataHandle &inputForceAD,int numForces
 
 
     // get priorities
-    MIntArray priorities = getPriorities(data, numForces);
+    MIntArray priorities = getPriorities ( data, numForces );
 
     // get first force element
-    inputForceAD.jumpToElement(0);
-    MDataHandle hCurrForces = inputForceAD.inputValue(&stat);
+    inputForceAD.jumpToElement ( 0 );
+    MDataHandle hCurrForces = inputForceAD.inputValue ( &stat );
     MObject dCurrForces = hCurrForces.data();
-    currForces = MFnVectorArrayData(dCurrForces).array(&stat);
+    currForces = MFnVectorArrayData ( dCurrForces ).array ( &stat );
 
     int forcesSize = currForces.length();
 
-    MVectorArray emptyForces(forcesSize, MVector::zero);
-    outForces.copy(emptyForces);
+    MVectorArray emptyForces ( forcesSize, MVector::zero );
+    outForces.copy ( emptyForces );
 
     // indicates per particle which priority is active
 
-    MIntArray currPriorities(forcesSize, MAX_INT);
+    MIntArray currPriorities ( forcesSize, MAX_INT );
 
-    for (aI=0; aI<numForces;aI++)
+    for ( aI=0; aI<numForces; aI++ )
     {
-        inputForceAD.jumpToElement(aI);
-        hCurrForces = inputForceAD.inputValue(&stat);
+        inputForceAD.jumpToElement ( aI );
+        hCurrForces = inputForceAD.inputValue ( &stat );
         dCurrForces = hCurrForces.data();
 
-        currForces.copy(MFnVectorArrayData(dCurrForces).array(&stat));
+        currForces.copy ( MFnVectorArrayData ( dCurrForces ).array ( &stat ) );
 
-        for (eI=0; eI<forcesSize; eI++)
+        for ( eI=0; eI<forcesSize; eI++ )
         {
-            if ((priorities[aI]<currPriorities[eI])&&(currForces[eI] != MVector::zero))
+            if ( ( priorities[aI]<currPriorities[eI] ) && ( currForces[eI] != MVector::zero ) )
             {
                 outForces[eI] = currForces[eI];
                 currPriorities[eI] = priorities[aI];
@@ -383,22 +383,22 @@ void bbCombineDesires::cdPriorities(MArrayDataHandle &inputForceAD,int numForces
 }
 
 /************************************************************************************/
-void bbCombineDesires::cdSelect(MArrayDataHandle &inputForceAD, MDataBlock& data, MVectorArray &outForces)
+void bbCombineDesires::cdSelect ( MArrayDataHandle &inputForceAD, MDataBlock& data, MVectorArray &outForces )
 {
     MStatus stat;
 
     MDataHandle hCurrForces;
     MObject dCurrForces;
 
-    short selectedForceV = selectedForceValue(data);
+    short selectedForceV = selectedForceValue ( data );
 
-    stat = inputForceAD.jumpToElement(selectedForceV);
+    stat = inputForceAD.jumpToElement ( selectedForceV );
 
-    if (stat==MS::kSuccess)
+    if ( stat==MS::kSuccess )
     {
-        hCurrForces = inputForceAD.inputValue(&stat);
+        hCurrForces = inputForceAD.inputValue ( &stat );
         dCurrForces = hCurrForces.data();
-        outForces.copy(MFnVectorArrayData(dCurrForces).array(&stat));
+        outForces.copy ( MFnVectorArrayData ( dCurrForces ).array ( &stat ) );
     }
 }
 
@@ -418,7 +418,7 @@ void* bbCombineDesires::creator()
 
 MStatus bbCombineDesires::initialize()
 {
-    MGlobal::displayInfo("bbCombineDesires... loaded");
+    MGlobal::displayInfo ( "bbCombineDesires... loaded" );
 
     MFnNumericAttribute nAttr;
     MStatus				stat;
@@ -426,57 +426,57 @@ MStatus bbCombineDesires::initialize()
     MFnTypedAttribute	tAttr;
     MFnEnumAttribute	eAttr;
 
-    inputForce=tAttr.create( "inputForce", "if", MFnVectorArrayData::kVectorArray , &stat );
-    stat = tAttr.setArray( true );
+    inputForce=tAttr.create ( "inputForce", "if", MFnVectorArrayData::kVectorArray , &stat );
+    stat = tAttr.setArray ( true );
 
 //	influenceData = tAttr.create( "influenceData", "id", MFnDoubleArrayData::kDoubleArray , &stat );
 //	tAttr.setStorable(true);
 
-    selectedForce = nAttr.create("selectedForce","sef",MFnNumericData::kShort,0);
-    nAttr.setMin(0);
-    nAttr.setMax(50);
-    nAttr.setStorable(true);
+    selectedForce = nAttr.create ( "selectedForce","sef",MFnNumericData::kShort,0 );
+    nAttr.setMin ( 0 );
+    nAttr.setMax ( 50 );
+    nAttr.setStorable ( true );
 
-    outputForce=tAttr.create( "outputForce", "of", MFnVectorArrayData::kVectorArray , &stat );
-    stat = tAttr.setStorable( false );
+    outputForce=tAttr.create ( "outputForce", "of", MFnVectorArrayData::kVectorArray , &stat );
+    stat = tAttr.setStorable ( false );
 
-    weight = nAttr.create("weight","wgt",MFnNumericData::kDouble,1.0);
-    nAttr.setArray( true );
-    nAttr.setReadable( true );
-    nAttr.setStorable( true );
-    nAttr.setUsesArrayDataBuilder( true );
-
-
-    priority = nAttr.create("priority","pri",MFnNumericData::kShort,1);
-    nAttr.setArray( true );
-    nAttr.setReadable( true );
-    nAttr.setStorable( true );
-    nAttr.setUsesArrayDataBuilder( true );
-
-    ditheringFactor = nAttr.create("ditheringFactor","df",MFnNumericData::kDouble,1.0);
-    nAttr.setMin(0.0);
-    nAttr.setMax(1.0);
-    nAttr.setArray( true );
-    nAttr.setReadable( true );
-    nAttr.setStorable( true );
-    nAttr.setUsesArrayDataBuilder( true );
-
-    numForces = nAttr.create("numForces","nf",MFnNumericData::kShort,0);
-    nAttr.setStorable(true);
-    nAttr.setReadable( true );
-    nAttr.setWritable( true );
+    weight = nAttr.create ( "weight","wgt",MFnNumericData::kDouble,1.0 );
+    nAttr.setArray ( true );
+    nAttr.setReadable ( true );
+    nAttr.setStorable ( true );
+    nAttr.setUsesArrayDataBuilder ( true );
 
 
-    combineMode = eAttr.create( "combineMode", "cm", CM_LINEAR);
-    eAttr.addField("Linear", CM_LINEAR);
-    eAttr.addField("Weights", CM_WEIGHTS);
-    eAttr.addField("Priority", CM_PRIORITY);
+    priority = nAttr.create ( "priority","pri",MFnNumericData::kShort,1 );
+    nAttr.setArray ( true );
+    nAttr.setReadable ( true );
+    nAttr.setStorable ( true );
+    nAttr.setUsesArrayDataBuilder ( true );
+
+    ditheringFactor = nAttr.create ( "ditheringFactor","df",MFnNumericData::kDouble,1.0 );
+    nAttr.setMin ( 0.0 );
+    nAttr.setMax ( 1.0 );
+    nAttr.setArray ( true );
+    nAttr.setReadable ( true );
+    nAttr.setStorable ( true );
+    nAttr.setUsesArrayDataBuilder ( true );
+
+    numForces = nAttr.create ( "numForces","nf",MFnNumericData::kShort,0 );
+    nAttr.setStorable ( true );
+    nAttr.setReadable ( true );
+    nAttr.setWritable ( true );
+
+
+    combineMode = eAttr.create ( "combineMode", "cm", CM_LINEAR );
+    eAttr.addField ( "Linear", CM_LINEAR );
+    eAttr.addField ( "Weights", CM_WEIGHTS );
+    eAttr.addField ( "Priority", CM_PRIORITY );
 //		eAttr.addField("Strongest", CM_STRONGEST);
 //		eAttr.addField("Weakest", CM_WEAKEST);
-    eAttr.addField("Selection", CM_SELECT);
+    eAttr.addField ( "Selection", CM_SELECT );
     //	eAttr.addField("Priorized Dithering", CM_PRIORIZEDDITHERING);
 
-    eAttr.setStorable(true);
+    eAttr.setStorable ( true );
 
     // Add the attributes we have created to the node
 
@@ -484,14 +484,14 @@ MStatus bbCombineDesires::initialize()
 			stat = addAttribute( _attr );	\
 			if (!stat) { stat.perror("addAttribute"); return stat;} \
 
-    nodeAddAttribute(inputForce);
-    nodeAddAttribute(outputForce);
-    nodeAddAttribute(combineMode);
-    nodeAddAttribute(selectedForce);
-    nodeAddAttribute(weight);
-    nodeAddAttribute(priority);
-    nodeAddAttribute(ditheringFactor);
-    nodeAddAttribute(numForces);
+    nodeAddAttribute ( inputForce );
+    nodeAddAttribute ( outputForce );
+    nodeAddAttribute ( combineMode );
+    nodeAddAttribute ( selectedForce );
+    nodeAddAttribute ( weight );
+    nodeAddAttribute ( priority );
+    nodeAddAttribute ( ditheringFactor );
+    nodeAddAttribute ( numForces );
 
     // Set up a dependency between the input and the output.
 
@@ -499,12 +499,12 @@ MStatus bbCombineDesires::initialize()
 			stat = attributeAffects( _attr1, _attr2 ); \
 			if (!stat) { stat.perror("attributeAffects"); return stat;} \
 
-    nodeSetDependency(inputForce,outputForce);
-    nodeSetDependency(selectedForce,outputForce);
-    nodeSetDependency(combineMode,outputForce);
-    nodeSetDependency(weight,outputForce);
-    nodeSetDependency(priority,outputForce);
-    nodeSetDependency(ditheringFactor,outputForce);
+    nodeSetDependency ( inputForce,outputForce );
+    nodeSetDependency ( selectedForce,outputForce );
+    nodeSetDependency ( combineMode,outputForce );
+    nodeSetDependency ( weight,outputForce );
+    nodeSetDependency ( priority,outputForce );
+    nodeSetDependency ( ditheringFactor,outputForce );
 
     return MS::kSuccess;
 }
