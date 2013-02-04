@@ -6,6 +6,7 @@
 // Dependency Graph Node: bbSteeringDesire
 //
 // Recompiled for Maya 2012 by Shawn Lipowski
+// modifications/improvements  2013 by  John Cassella (redpawfx)
 //
 
 #include <math.h>
@@ -2202,6 +2203,7 @@ void bbSteeringDesire::sdBugHeadDirection ( MDataBlock& block,
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
     double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double minimumForceV = minimumForceValue( block );
 
     MVector directionV;
     directionValue ( block,directionV );
@@ -2212,7 +2214,7 @@ void bbSteeringDesire::sdBugHeadDirection ( MDataBlock& block,
 
     for ( int i=0; i < posSize; i++ )
     {
-        if ( directionV != MVector::zero )
+        if ( directionV != MVector::zero && velocities[i].length() >=  minimumForceV )
         {
             desiredVelocityV = directionV;
         }
@@ -2254,7 +2256,6 @@ void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
 	double minimumForceV = minimumForceValue ( block );
 	double magValue	= block.inputValue ( mMagnitude ).asDouble();
 
-
     MVector targetV;
 
     // alignment steering
@@ -2275,7 +2276,7 @@ void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
 
         if ( nearbyBugIndexListSize > 0 )
         {
-            desiredVelocityV = velocities[i];
+            desiredVelocityV = MVector::zero;
 
 			int includeForceCount = 1;
             for ( j=0; j < nearbyBugIndexListSize; j++ )
@@ -2286,11 +2287,15 @@ void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
 					includeForceCount ++;
 				}
             }
-            desiredVelocityV *= 1.0/float ( includeForceCount );
-            //desiredVelocityV =  desiredVelocityV - velocities[i];
 
+			float mag = desiredVelocityV.length();
+            desiredVelocityV *= 1.0/float ( includeForceCount );
+
+            //desiredVelocityV =  desiredVelocityV - velocities[i];
             desiredVelocityV *= scaleDesiredForceV;
+			desiredVelocityV *= mag;
 			desiredVelocityV *= magValue;
+
             truncVector ( desiredVelocityV,maximumForceV*magValue );
             outputForce.append ( desiredVelocityV );
         }

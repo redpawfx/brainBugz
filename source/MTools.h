@@ -1,9 +1,10 @@
 //
-// Copyright (C) 2002 Carsten Kolve  
-// 
+// Copyright (C) 2002 Carsten Kolve
+//
 // File: MTools.h
 //
 // Recompiled for Maya 2012 by Shawn Lipowski
+// modifications/improvements  2013 by  John Cassella (redpawfx)
 //
 
 #pragma once
@@ -27,39 +28,39 @@ void shellSort(MDoubleArray &a)
 
 	int i,j;
 	double v;
-	
-	int inc = 1; 
-		
+
+	int inc = 1;
+
 	// Determine the starting increment.
 
-	do 
+	do
 	{
 		inc *= 3;
 		inc++;
-	} 
+	}
 	while (inc <= n);
-	
-	do 
-	{ 
+
+	do
+	{
 		// Loop over the partial sorts.
 		inc /= 3;
-		for (i=inc+1;i<=n;i++) 
-		{ 
+		for (i=inc+1;i<=n;i++)
+		{
 			// Outer loop of straight insertion.
 			v=a[i];
 			j=i;
-		
-			while (a[j-inc] > v) 
-			{ 
+
+			while (a[j-inc] > v)
+			{
 				// Inner loop of straight insertion.
 				a[j]=a[j-inc];
 				j -= inc;
 				if (j <= inc) break;
 			}
-			
+
 			a[j]=v;
 		}
-	} 
+	}
 	while (inc > 1);
 }
 

@@ -6,6 +6,7 @@
 // Dependency Graph Node: bbCombineDesires
 //
 // Recompiled for Maya 2012 by Shawn Lipowski
+// modifications/improvements  2013 by  John Cassella (redpawfx)
 //
 
 #pragma once

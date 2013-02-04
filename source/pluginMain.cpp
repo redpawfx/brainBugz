@@ -4,6 +4,7 @@
 // File: pluginMain.cpp
 //
 // Recompiled for Maya 2012 by Shawn Lipowski
+// modifications/improvements  2013 by  John Cassella (redpawfx)
 //
 
 #include <maya/MFnPlugin.h>
