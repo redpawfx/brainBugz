@@ -34,7 +34,7 @@
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MGlobal.h>
 
-#include "bbSteeringDesireNode.h"
+#include "bbSteeringDesireField.h"
 #include "MTools.h"
 
 
@@ -191,6 +191,8 @@ void bbSteeringDesire::postConstructor()
 
 MStatus bbSteeringDesire::initialize()
 {
+
+	cout << "bbSteeringDesireField v1.5 initialized (c)Carsten Kolve/Shawn Lipowski/redpawFX 2013" << endl;
 #define nodeCreateAttrDouble(_name, _shortname, _value) \
 			_name = nAttr.create( #_name, #_shortname, MFnNumericData::kDouble, _value); \
 

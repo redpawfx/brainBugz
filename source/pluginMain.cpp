@@ -11,8 +11,8 @@
 #include <maya/MPxNode.h>
 
 
-#include "bbCombineDesiresNode.h"
-#include "bbSteeringDesireNode.h"
+#include "bbCombineDesiresField.h"
+#include "bbSteeringDesireField.h"
 
 MStatus initializePlugin ( MObject obj )
 

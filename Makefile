@@ -12,17 +12,17 @@
 #
 include ./buildconfig
 
-.SUFFIXES: .cpp .cc .o .so .c .bundle 
+.SUFFIXES: .cpp .cc .o .so .c .bundle
 
-OUTPUT = ./
+OUTPUT = ./build/$(OS_ARCH)/
 
 EXT	= so
 
 
-##  shared Object / plugin 
+##  shared Object / plugin
 PLUGIN =  brainBugz.$(EXT)
 
-EXTRA_INCUDES =  -I$(MAYA_LOCATION)/include 
+EXTRA_INCUDES =  -I$(MAYA_LOCATION)/include
 
 EXTRA_LIBS =  -L$(MAYA_LOCATION)/lib
 
@@ -37,23 +37,23 @@ depend:
 	makedepend $(INCLUDES) $(EXTRA_INCUDES) *.cc *.cpp
 
 clean:
-	-rm -f *.o $(OUTPUT)*.so
+	-rm -f ./source/*.o $(OUTPUT)*.so
 
 
 ##################
 # Specific Rules #
 ##################
 
-SOURCES =  bbCombineDesires.cpp  bbSteeringDesireNode.cpp pluginMain.cpp
-          		  
+SOURCES =  ./source/bbCombineDesiresField.cpp  ./source/bbSteeringDesireField.cpp ./source/pluginMain.cpp
 
-OBJS = $(SOURCES:.cpp=.o)  
+
+OBJS = $(SOURCES:.cpp=.o)
 
 all: $(SOURCES) $(PLUGIN)
 
 $(PLUGIN): $(OBJS)
 	-rm -f $(OUTPUT)$@
-	$(LD) -o $(OUTPUT)$@ $(OBJS) $(LIBS) $(EXTRA_LIBS)  
+	$(LD) -o $(OUTPUT)$@ $(OBJS) $(LIBS) $(EXTRA_LIBS)
 
 
 

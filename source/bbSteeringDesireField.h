@@ -1,17 +1,17 @@
 //
 // Copyright (C) 2002 Carsten Kolve
 //
-// File: bbSteeringDesireNode.h
+// File: bbSteeringDesireField.h
 //
-// Dependency Graph Node: bbSteeringDesire
+// Dependency Graph Node: bbSteeringDesireField
 //
 // Recompiled for Maya 2012 by Shawn Lipowski
 // modifications/improvements  2013 by  John Cassella (redpawfx)
 //
 
 #pragma once
-#ifndef BBSTEERINGDESIRENODE_H
-#define BBSTEERINGDESIRENODE_H
+#ifndef BBSTEERINGDESIREFIELD_H
+#define BBSTEERINGDESIREFIELD_H
 
 #include <iostream>
 
@@ -564,4 +564,4 @@ inline MStatus bbSteeringDesire::wanderSphereOffsetValue ( MDataBlock& block,MVe
     return ( status );
 }
 
-#endif /* BBSTEERINGDESIRENODE_H */
+#endif /* BBSTEERINGDESIREFIELD_H */

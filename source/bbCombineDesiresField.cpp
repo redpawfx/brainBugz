@@ -23,7 +23,7 @@
 #include <maya/MDataHandle.h>
 #include <maya/MGlobal.h>
 
-#include "bbCombineDesiresNode.h"
+#include "bbCombineDesiresField.h"
 #include "MTools.h"
 
 // official redpawfx Autodesk ID ID_BRAINBUGZ_COMBINEDESIRE
@@ -68,7 +68,7 @@ void* bbCombineDesires::creator()
 
 MStatus bbCombineDesires::initialize()
 {
-    MGlobal::displayInfo ( "bbCombineDesires... loaded" );
+	cout << "bbCombineDesires v1.5 initialized (c)Carsten Kolve/Shawn Lipowski/redpawFX 2013" << endl;
 
 	MStatus				stat;
 
