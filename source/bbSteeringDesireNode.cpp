@@ -838,7 +838,7 @@ bool inFieldOfView ( MVector& targetOffset, const MVector& velocity, bool uRange
 void getNearbyBugs ( const MVectorArray& bugPositions, int refBugIndex,const MVector& velocity, bool uRange, bool uAngle, double sRange, double sAngle,MIntArray &nearbyBugIndexList )
 {
     int bugPositionsSize =bugPositions.length();
-    int i =0;
+
     MVector difVector;
 
 //	MString temp;
@@ -847,7 +847,7 @@ void getNearbyBugs ( const MVectorArray& bugPositions, int refBugIndex,const MVe
 
     if ( ( !uRange ) && ( !uAngle ) )
     {
-        for ( i; i < bugPositionsSize; i++ )
+        for ( int i = 0; i < bugPositionsSize; i++ )
         {
             if ( i != refBugIndex )
             {
@@ -862,7 +862,7 @@ void getNearbyBugs ( const MVectorArray& bugPositions, int refBugIndex,const MVe
 
 //			temp = "Range: ";
 
-            for ( i=0; i < bugPositionsSize; i++ )
+            for (int i=0; i < bugPositionsSize; i++ )
             {
                 if ( i != refBugIndex )
                 {
@@ -879,7 +879,7 @@ void getNearbyBugs ( const MVectorArray& bugPositions, int refBugIndex,const MVe
         }
         else
         {
-            for ( i; i < bugPositionsSize; i++ )
+            for ( int i =0; i < bugPositionsSize; i++ )
             {
                 if ( i != refBugIndex )
                 {
@@ -897,7 +897,7 @@ void getNearbyBugs ( const MVectorArray& bugPositions, int refBugIndex,const MVe
 
 //			temp="Angle: ";
 
-            for ( i = nearbyBugIndexListSize - 1; i > -1; i-- )
+            for ( int i = nearbyBugIndexListSize - 1; i > -1; i-- )
             {
                 angle = MVector ( bugPositions[nearbyBugIndexList[i]] - bugPositions[refBugIndex] ).angle ( velocity );
 
@@ -1772,15 +1772,13 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
     int targetSize = target.length();
     int posSize = positions.length();
 
-    int i =0;
     int j =0;
-
 
     MVector desiredVelocityV ( 0.0,0.0,0.0 );
 
     if ( targetSize != 0 )
     {
-        for ( i; i < posSize; i ++ )
+        for ( int i = 0; i < posSize; i ++ )
         {
             desiredVelocityV = target[j] - positions[i];
 
@@ -1834,7 +1832,6 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
     int targetSize = target.length();
     int posSize = positions.length();
 
-    int i =0;
     int j =0;
 
 
@@ -1842,7 +1839,7 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
 
     if ( targetSize != 0 )
     {
-        for ( i; i < posSize; i ++ )
+        for ( int i =0 ; i < posSize; i ++ )
         {
             desiredVelocityV = target[j] - positions[i];
 
@@ -1896,7 +1893,6 @@ void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
     int targetSize = target.length();
     int posSize = positions.length();
 
-    int i =0;
     int j =0;
 
 
@@ -1904,7 +1900,7 @@ void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
 
     if ( targetSize != 0 )
     {
-        for ( i; i < posSize; i ++ )
+        for (int i =0; i < posSize; i ++ )
         {
             desiredVelocityV = target[j] - positions[i];
 
@@ -1953,15 +1949,13 @@ void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
     //
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
-    double stoppingRangeV = stoppingRangeValue ( block );
+    //double stoppingRangeV = stoppingRangeValue ( block );
     double magValue	= block.inputValue ( mMagnitude ).asDouble();
 
     int targetSize = target.length();
     int posSize = positions.length();
 
-    int i =0;
     int j =0;
-
 
     // get last offset values
     MVectorArray lastTargetPos;
@@ -2010,7 +2004,7 @@ void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
 
     if ( targetSize != 0 )
     {
-        for ( i; i < posSize; i ++ )
+        for ( int i = 0; i < posSize; i ++ )
         {
             desiredVelocityV = target[j] - positions[i];
 
@@ -2079,7 +2073,6 @@ void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
     int targetSize = target.length();
     int posSize = positions.length();
 
-    int i =0;
     int j =0;
 
     // get last offset values
@@ -2132,7 +2125,7 @@ void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
 
     if ( targetSize != 0 )
     {
-        for ( i; i < posSize; i ++ )
+        for ( int i =0; i < posSize; i ++ )
         {
             desiredVelocityV = target[j] - positions[i];
 
@@ -2263,13 +2256,12 @@ void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
 
     MVector desiredVelocityV;
 
-    int i =0;
     int j =0;
 
     MIntArray nearbyBugIndexList;
     int nearbyBugIndexListSize;
 
-    for ( i; i < posSize; i++ )
+    for ( int i =0; i < posSize; i++ )
     {
         getNearbyBugs ( positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList );
         nearbyBugIndexListSize= nearbyBugIndexList.length();
@@ -2348,7 +2340,6 @@ void bbSteeringDesire::sdNeighborCohesion ( MDataBlock& block,
     MVector desiredVelocityV;
     MVector noForceV ( 0.0,0.0,0.0 );
 
-    int i =0;
     int j =0;
 
     MIntArray nearbyBugIndexList;
@@ -2362,7 +2353,7 @@ void bbSteeringDesire::sdNeighborCohesion ( MDataBlock& block,
     //temp ="";
 
 
-    for ( i; i < posSize; i ++ )
+    for (int  i =0; i < posSize; i ++ )
     {
         getNearbyBugs ( positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList );
         nearbyBugIndexListSize= nearbyBugIndexList.length();
@@ -2431,7 +2422,7 @@ void bbSteeringDesire::sdNeighborSeparation ( MDataBlock& block,
     double sensorAngle = sensorAngleValue ( block );
 
     double maximumForceV = maximumForceValue ( block );
-    double bugRadiusV = bugRadiusValue ( block );
+    //double bugRadiusV = bugRadiusValue ( block );
 
     // alignment steering
     int posSize = positions.length();
@@ -2440,13 +2431,12 @@ void bbSteeringDesire::sdNeighborSeparation ( MDataBlock& block,
     MVector positionOffset;
     MVector noForceV ( 0.0,0.0,0.0 );
 
-    int i =0;
     int j =0;
 
     MIntArray nearbyBugIndexList;
     int nearbyBugIndexListSize;
 
-    for ( i; i < posSize; i ++ )
+    for ( int i =0; i < posSize; i ++ )
     {
         getNearbyBugs ( positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList );
         nearbyBugIndexListSize= nearbyBugIndexList.length();
@@ -2501,7 +2491,7 @@ void bbSteeringDesire::sdNeighborUnalignedCollisionAvoidance ( MDataBlock& block
     double sensorAngle = sensorAngleValue ( block );
 
     double maximumForceV = maximumForceValue ( block );
-    double bugRadiusV = bugRadiusValue ( block );
+    //double bugRadiusV = bugRadiusValue ( block );
 
     double toleranceV = toleranceValue ( block );
 
@@ -2612,7 +2602,7 @@ void bbSteeringDesire::sdNeighborKeepDistance ( MDataBlock& block,
     double sensorAngle = sensorAngleValue ( block );
 
     double maximumForceV = maximumForceValue ( block );
-    double bugRadiusV = bugRadiusValue ( block );
+    //double bugRadiusV = bugRadiusValue ( block );
 
     double toleranceV = toleranceValue ( block );
     double desiredSpeedV = desiredSpeedValue ( block );
@@ -2627,8 +2617,6 @@ void bbSteeringDesire::sdNeighborKeepDistance ( MDataBlock& block,
 
     double nearestBugDistance = MAX_DOUBLE;
 
-
-    int i =0;
     int j =0;
 
     double currDistance;
@@ -2639,7 +2627,7 @@ void bbSteeringDesire::sdNeighborKeepDistance ( MDataBlock& block,
     MIntArray nearbyBugIndexList;
     int nearbyBugIndexListSize;
 
-    for ( i; i < posSize; i ++ )
+    for ( int i =0; i < posSize; i ++ )
     {
         getNearbyBugs ( positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList );
         nearbyBugIndexListSize= nearbyBugIndexList.length();
@@ -2929,11 +2917,11 @@ void bbSteeringDesire::sdSurfaceFollowing ( MDataBlock& block,
 
     outputForce.clear();
 
-    bool useSensorRangeV = useSensorRangeValue ( block );
+    //bool useSensorRangeV = useSensorRangeValue ( block );
     double sensorRangeV = sensorRangeValue ( block );
 
-    bool useSensorAngleV = useSensorAngleValue ( block );
-    double sensorAngle = sensorAngleValue ( block );
+    //bool useSensorAngleV = useSensorAngleValue ( block );
+    //double sensorAngle = sensorAngleValue ( block );
 
     double scaleDesiredForceV = 1.0;
     if ( inverseDesiredSteeringForceValue ( block ) )
@@ -2984,7 +2972,7 @@ void bbSteeringDesire::sdSurfaceFollowing ( MDataBlock& block,
         MPoint closestSurfacePoint;
         MVector tangent;
 
-        double epsilon = 0.01;
+        //double epsilon = 0.01;
 
         MString temp;
 
@@ -3219,11 +3207,11 @@ void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
 
     outputForce.clear();
 
-    bool useSensorRangeV = useSensorRangeValue ( block );
+    //bool useSensorRangeV = useSensorRangeValue ( block );
     double sensorRangeV = sensorRangeValue ( block );
 
-    bool useSensorAngleV = useSensorAngleValue ( block );
-    double sensorAngle = sensorAngleValue ( block );
+    //bool useSensorAngleV = useSensorAngleValue ( block );
+    //double sensorAngle = sensorAngleValue ( block );
 
     double scaleDesiredForceV = 1.0;
     if ( inverseDesiredSteeringForceValue ( block ) )
@@ -3249,7 +3237,7 @@ void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
         MGlobal::displayError ( "bbSteeringDesire::compute inputMeshArrayData" );
     }
 
-    int numMesh = inputMeshAD.elementCount();
+    //int numMesh = inputMeshAD.elementCount();
 
     stat = inputMeshAD.jumpToElement ( inputIndexValue ( block ) );
 
@@ -3276,7 +3264,7 @@ void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
         MPoint closestMeshPoint;
         MVector tangent;
 
-        double epsilon = 0.01;
+        //double epsilon = 0.01;
 
         MString temp;
 
@@ -3522,7 +3510,7 @@ void bbSteeringDesire::sdBugWander ( MDataBlock& block,
         scaleDesiredForceV = -1.0;
 
     double maximumForceV = maximumForceValue ( block );
-    double bugRadiusV = bugRadiusValue ( block );
+    //double bugRadiusV = bugRadiusValue ( block );
     double magValue	= block.inputValue ( mMagnitude ).asDouble();
 	double minimumForceV = minimumForceValue( block );
 
@@ -3546,7 +3534,7 @@ void bbSteeringDesire::sdBugWander ( MDataBlock& block,
     double speedRange = maxSpeed - minSpeed;
     double distanceRange = 2*wSphereRadiusV;
 
-    double speed;
+    double speed = 0;
 
 
     short chooseSpeedV = chooseSpeedValue ( block );

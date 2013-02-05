@@ -16,12 +16,14 @@
 #include <iostream>
 
 #include <maya/MIOStream.h>
-#include <maya/MPxNode.h>
+#include <maya/MPxFieldNode.h>
 #include <maya/MFnNumericAttribute.h>
+#include <maya/MFnUnitAttribute.h>
 #include <maya/MTypeId.h>
 #include <maya/MDataBlock.h>
 #include <maya/MVectorArray.h>
 #include <maya/MDoubleArray.h>
+#include <maya/MTime.h>
 
 #define McheckErr(stat, msg)		\
 	if ( MS::kSuccess != stat )	\
@@ -30,10 +32,8 @@
 		return MS::kFailure;	\
 	}\
 
-#define className bbCombineDesires
 
-
-class bbCombineDesires : public MPxNode
+class bbCombineDesires : public MPxFieldNode
 {
 public:
     bbCombineDesires();
@@ -45,17 +45,11 @@ public:
     static  MStatus		initialize();
 
 
-
-    static  MObject		inputForce;		// input attributes
-
     static  MObject		weight;
     static  MObject		priority;
     static  MObject		ditheringFactor;
     static  MObject		numForces;
-
-    static  MObject		outputForce;		// output attribute
     static  MObject	    combineMode;
-
     static  MObject		selectedForce;
 
     static	MTypeId		id;

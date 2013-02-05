@@ -9,7 +9,7 @@
 
 #include <maya/MFnPlugin.h>
 #include <maya/MPxNode.h>
-//#include <maya/MPxFieldNode.h>
+
 
 #include "bbCombineDesiresNode.h"
 #include "bbSteeringDesireNode.h"
@@ -18,7 +18,7 @@ MStatus initializePlugin ( MObject obj )
 
 {
     MStatus   status;
-    MFnPlugin plugin ( obj, "Carsten Kolve", "4.0", "Any" );
+    MFnPlugin plugin ( obj, "Carsten Kolve/John Cassella", "2012+", "Any" );
 
     // register steering desire node
     status = plugin.registerNode ( "bbSteeringDesireField",
@@ -36,7 +36,8 @@ MStatus initializePlugin ( MObject obj )
     status = plugin.registerNode ( "bbCombineDesiresField",
                                    bbCombineDesires::id,
                                    bbCombineDesires::creator,
-                                   bbCombineDesires::initialize );
+                                   bbCombineDesires::initialize,
+								   MPxNode::kFieldNode );
 
     if ( !status )
     {

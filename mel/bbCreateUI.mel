@@ -1,4 +1,4 @@
-// script will be sourced when brainbugz.mll is loaded
+// script will be sourced when brainbugz plugin is loaded
 
 global proc bbCreateUI()
 {
@@ -6,7 +6,7 @@ global proc bbCreateUI()
 	if(!(`exists bbMenu`))
 	{
 		// build menu
-		menu -l "brainbugz" -aob 1 -to true -p "MayaWindow" bbMenu;
+		menu -l "brainBugz" -aob 1 -to true -p "MayaWindow" bbMenu;
 		menuItem -l "Create Steering Desire" -c "bbSteeringDesire";
 		menuItem -l "Create Desire Combiner" -c "bbCombineDesires";
 		menuItem -divider true;
@@ -20,14 +20,11 @@ global proc bbCreateUI()
 	}
 }
 
-//
-// proc will create new steering desire node and renames it
-//
-global proc bbSteeringDesire()
+//////////////////////////////////
+// hides  useless field attrs in channel box
+global proc  hideFieldAttrs (string $nodeName)
 {
-    string $nodeName = `createNode bbSteeringDesireField`;
-    $nodeName = `rename $nodeName "bbSD#"`;
-    setAttr -k off ($nodeName+".applyPerVertex");
+	setAttr -k off ($nodeName+".applyPerVertex");
 	setAttr -k off ($nodeName+".attenuation");
 	setAttr -k off ($nodeName+".axialMagnitude[0].axialMagnitude_FloatValue");
 	setAttr -k off ($nodeName+".axialMagnitude[0].axialMagnitude_Interp");
@@ -52,16 +49,29 @@ global proc bbSteeringDesire()
 	setAttr -k off ($nodeName+".volumeSweep");
 }
 
+
+/////////////////////////////////////////////////////////////
+// proc will create new steering desire node and renames it
 //
+global proc bbSteeringDesire()
+{
+    string $nodeName = `createNode bbSteeringDesireField`;
+    $nodeName = `rename $nodeName "bbSD#"`;
+	hideFieldAttrs  $nodeName;
+}
+
+/////////////////////////////////////////////////////////////
 // proc will create new combine desire node and renames it
 //
 global proc bbCombineDesires()
 {
     string $nodeName = `createNode bbCombineDesiresField`;
     $nodeName = `rename $nodeName "bbCD#"`;
+	hideFieldAttrs  $nodeName;
+
 }
 
-//
+///////////////////////////////////////////////////////////////////////////////////
 // proc will modify the selected particles, so their speed can be min/max clamped
 //
 global proc int bbClampSpeed()
@@ -178,9 +188,11 @@ global proc int bbConnect(string $nodeS, string $nodeD, int $index)
     		{
     			case "bbCombineDesires":
     			  	if($index==-1)
-    					$index =eval("getAttr -s "+$nodeD+".inputForces");
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
 
      				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+					eval("connectAttr -f "+$nodeD+".inputPPData[0] "+$nodeS+".inputPPData[0]");
+					eval("connectAttr -f "+$nodeD+".inputData[0] "+$nodeS+".inputData[0]");
     			break;
 
     			case "particle":
@@ -206,8 +218,10 @@ global proc int bbConnect(string $nodeS, string $nodeD, int $index)
     		{
     			case "bbCombineDesires":
     			  	if($index==-1)
-    					$index =eval("getAttr -s "+$nodeD+".inputForces");
+    					$index =eval("getAttr -s "+$nodeD+".inputForce");
      				eval("connectAttr -f "+$nodeS+".outputForce "+$nodeD+".inputForce["+$index+"]");
+					eval("connectAttr -f "+$nodeD+".inputPPData[0] "+$nodeS+".inputPPData[0]");
+					eval("connectAttr -f "+$nodeD+".inputData[0] "+$nodeS+".inputData[0]");
     			break;
 
     			case "particle":
@@ -258,6 +272,8 @@ global proc int bbConnect(string $nodeS, string $nodeD, int $index)
     		{
     			case "bbCombineDesires":
     				eval("connectAttr -f "+$nodeS+".outputForce[0] "+$nodeD+".inputForce["+$index+"]");
+					eval("connectAttr -f "+$nodeD+".inputPPData[0] "+$nodeS+".inputPPData[0]");
+					eval("connectAttr -f "+$nodeD+".inputData[0] "+$nodeS+".inputData[0]");
     			break;
 
     			case "particle":
@@ -363,10 +379,6 @@ global proc bbConnectionEditor()
 	if (`window -q -ex bbConnectionEditorWindow`)
 	{
 		deleteUI bbConnectionEditorWindow;
-		//confirmDialog -title "bb Confirm"
-		//			  -message "bbConnectionEditor Window already exists!\nYou can`t have 2 connection editors at the same time."
-    	//			  -button "OK"  -defaultButton "OK"
-    	//			  -cancelButton "OK";
 	}
 
 	bbStartConnectionEditor();
@@ -648,8 +660,8 @@ global proc bbCurrentNodeUpdate(string $node[])
 		// set currentNodePicture
 		switch ($nodeType)
 		{
-			case "bbSteeringDesireField"	: $picture = "out_bbSteeringDesire.xpm"; break;
-			case "bbCombineDesiresField"	: $picture = "out_bbCombineDesires.xpm"; break;
+			case "bbSteeringDesireField"	: $picture = "out_bbSteeringDesireField.xpm"; break;
+			case "bbCombineDesiresField"	: $picture = "out_bbCombineDesiresField.xpm"; break;
 			case "particle"			: $picture = "particle.xpm"; break;
 			case "nParticle" 		: $picture = "particle.xpm"; break;
 			case "airField"			: $picture = "posAir.xpm"; break;

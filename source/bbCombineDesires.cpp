@@ -1,4 +1,4 @@
-//
+////
 // Copyright (C) 2002 Carsten Kolve
 //
 // File: bbCombineDesires.cpp
@@ -45,118 +45,252 @@ MTypeId     bbCombineDesires::id ( 0x0011A305 );
 
 // attributes
 
-
-MObject	className::inputForce;
-MObject	className::outputForce;
-MObject	className::weight;
-MObject	className::priority;
-MObject	className::ditheringFactor;
-MObject	className::numForces;
-MObject	className::combineMode;
-MObject	className::selectedForce;
+MObject	bbCombineDesires::weight;
+MObject	bbCombineDesires::priority;
+MObject	bbCombineDesires::ditheringFactor;
+MObject	bbCombineDesires::numForces;
+MObject	bbCombineDesires::combineMode;
+MObject	bbCombineDesires::selectedForce;
 
 
-bbCombineDesires::bbCombineDesires() {}
-bbCombineDesires::~bbCombineDesires() {}
+bbCombineDesires::bbCombineDesires()
+{}
+bbCombineDesires::~bbCombineDesires()
+{}
 
-/************************************************************************************/
-MStatus bbCombineDesires::compute ( const MPlug& plug, MDataBlock& data )
+void* bbCombineDesires::creator()
 {
-    MStatus stat;
-//	MGlobal::displayInfo("compute");
+    return new bbCombineDesires();
+}
 
-    if ( plug == outputForce )
-    {
-        // get input forces
-        MArrayDataHandle inputForceAD = data.inputArrayValue ( inputForce, &stat );
-        McheckErr ( stat,"bbCombineDesires::compute inputPrioritiesArrayData" );
-        int numForces  = inputForceAD.elementCount();
-        inputForceAD.jumpToElement ( 0 );
+//////////////////////////////////////////////////////////////
+/// initialize attrs
 
-        if ( numForces > 0 )
-        {
+MStatus bbCombineDesires::initialize()
+{
+    MGlobal::displayInfo ( "bbCombineDesires... loaded" );
 
-            // check size of input arrays weights priorities dithering factors
+	MStatus				stat;
 
-            /*			// check size of influence data
+    MFnNumericAttribute nAttr;
+    MFnTypedAttribute	tAttr;
+    MFnEnumAttribute	eAttr;
+	MFnUnitAttribute    uAttr;
 
-            			int influenceDataSize = influenceDataV.length();
+//	influenceData = tAttr.create( "influenceData", "id", MFnDoubleArrayData::kDoubleArray , &stat );
+//	tAttr.setStorable(true);
 
-            			// if necessary update influence data size
+    selectedForce = nAttr.create ( "selectedForce","sef",MFnNumericData::kShort,0 );
+    nAttr.setMin ( 0 );
+    nAttr.setMax ( 50 );
+    nAttr.setStorable ( true );
+	nAttr.setKeyable( true );
 
-            			if (influenceDataSize != numForces)
-            			{
-            				if (influenceDataSize < numForces)
-            				{
-            					for (int e=influenceDataSize-1; e<numForces; e++)
-            						influenceDataV.append(1.0);
-            				}
-            				else
-            				{
-            					do
-            					{
-            						influenceDataV.remove(influenceDataSize-1);
-            						influenceDataSize = influenceDataV.length();
-            					}
-            					while (influenceDataV.length() > numForces);
-            				}
-            			}
-            */
-            // get combine forces
-            short combineModeV = combineModeValue ( data );
+    weight = nAttr.create ( "weight","wgt",MFnNumericData::kDouble,1.0 );
+    nAttr.setArray ( true );
+    nAttr.setReadable ( true );
+    nAttr.setStorable ( true );
+    nAttr.setUsesArrayDataBuilder ( true );
+	nAttr.setKeyable( true );
 
-            // create needed variables
-            MVectorArray outForces;
 
-            switch ( combineModeV )
-            {
-            case CM_LINEAR:
-                cdLinear ( inputForceAD,numForces,outForces );
-                break;
-            case CM_WEIGHTS:
-                cdWeights ( inputForceAD,numForces,data,outForces );
-                break;
-            case CM_PRIORITY:
-                cdPriorities ( inputForceAD,numForces,data,outForces );
-                break;
-            case CM_SELECT:
-                cdSelect ( inputForceAD,data,outForces );
-                break;
-            }
+    priority = nAttr.create ( "priority","pri",MFnNumericData::kShort,1 );
+    nAttr.setArray ( true );
+    nAttr.setReadable ( true );
+    nAttr.setStorable ( true );
+    nAttr.setUsesArrayDataBuilder ( true );
+	nAttr.setKeyable( true );
 
-            // get output force array from block.
-            //
+    ditheringFactor = nAttr.create ( "ditheringFactor","df",MFnNumericData::kDouble,1.0 );
+    nAttr.setMin ( 0.0 );
+    nAttr.setMax ( 1.0 );
+    nAttr.setArray ( true );
+    nAttr.setReadable ( true );
+    nAttr.setStorable ( true );
+    nAttr.setUsesArrayDataBuilder ( true );
+	nAttr.setKeyable( true );
 
-            MDataHandle hOut = data.outputValue ( outputForce, &stat );
-            McheckErr ( stat, "ERROR in hOut = bOutArray.addElement.\n" );
+    numForces = nAttr.create ( "numForces","nf",MFnNumericData::kShort,0 );
+    nAttr.setStorable ( true );
+    nAttr.setReadable ( true );
+    nAttr.setWritable ( true );
 
-            MFnVectorArrayData fnOutputForce;
-            MObject dOutputForce = fnOutputForce.create ( outForces, &stat );
+    combineMode = eAttr.create ( "combineMode", "cm", CM_LINEAR );
+    eAttr.addField ( "Linear", CM_LINEAR );
+    eAttr.addField ( "Weights", CM_WEIGHTS );
+    eAttr.addField ( "Priority", CM_PRIORITY );
+//		eAttr.addField("Strongest", CM_STRONGEST);
+//		eAttr.addField("Weakest", CM_WEAKEST);
+    eAttr.addField ( "Selection", CM_SELECT );
+    //	eAttr.addField("Priorized Dithering", CM_PRIORIZEDDITHERING);
+    eAttr.setStorable ( true );
+	eAttr.setKeyable( true );
 
-            McheckErr ( stat, "ERROR in dOutputForce = fnOutputForce.create\n" );
+    // Add the attributes we have created to the node
 
-            // update data block with new output force data.
-            //
-            hOut.set ( dOutputForce );
-            data.setClean ( plug );
+    CHECK_MSTATUS (addAttribute ( combineMode ));
+    CHECK_MSTATUS (addAttribute ( selectedForce ));
+    CHECK_MSTATUS (addAttribute ( weight ));
+    CHECK_MSTATUS (addAttribute ( priority ));
+    CHECK_MSTATUS (addAttribute ( ditheringFactor ));
+    CHECK_MSTATUS (addAttribute ( numForces ));
 
-            // store influence data
+    // Set up a dependency between the input and the output.
+
+    return MS::kSuccess;
+}
+
+////////////////////////////////////////
+///  __   __        __       ___   __
+/// |    |  | |\/| |__| |  |  |   |_
+/// |__  |__| |  | |    |__|  |   |__
+///
+////////////////////////////////////////
+
+MStatus bbCombineDesires::compute ( const MPlug& plug, MDataBlock& block )
+{
+    MStatus status;
+
+	if ( ! ( plug == mOutputForce ) )
+        return ( MS::kUnknownParameter );
+
+	// get the logical index of the element this plug refers to.
+    //
+    int multiIndex = plug.logicalIndex ( &status );
+    McheckErr ( status, "ERROR in plug.logicalIndex.\n" );
+
+    // Get input data handle, use outputArrayValue since we do not
+    // want to evaluate both inputs, only the one related to the
+    // requested multiIndex. Evaluating both inputs at once would cause
+    // a dependency graph loop.
+    //
+    MArrayDataHandle hInputArray = block.outputArrayValue ( mInputData, &status );
+    McheckErr ( status,"ERROR in hInputArray = block.outputArrayValue().\n" );
+
+    status = hInputArray.jumpToElement ( multiIndex );
+    McheckErr ( status, "ERROR: hInputArray.jumpToElement failed.\n" );
+
+    // get children of aInputData.
+    //
+    MDataHandle hCompond = hInputArray.inputValue ( &status );
+    McheckErr ( status, "ERROR in hCompond=hInputArray.inputValue\n" );
+
+    MDataHandle hPosition = hCompond.child ( mInputPositions );
+    MObject dPosition = hPosition.data();
+    MFnVectorArrayData fnPosition ( dPosition );
+    MVectorArray points = fnPosition.array ( &status );
+    McheckErr ( status, "ERROR in fnPosition.array(), not find points.\n" );
+
+    MDataHandle hVelocity = hCompond.child ( mInputVelocities );
+    MObject dVelocity = hVelocity.data();
+    MFnVectorArrayData fnVelocity ( dVelocity );
+    MVectorArray velocities = fnVelocity.array ( &status );
+    McheckErr ( status, "ERROR in fnVelocity.array(), not find velocities.\n" );
+
+    MDataHandle hMass = hCompond.child ( mInputMass );
+    MObject dMass = hMass.data();
+    MFnDoubleArrayData fnMass ( dMass );
+    MDoubleArray masses = fnMass.array ( &status );
+    McheckErr ( status, "ERROR in fnMass.array(), not find masses.\n" );
+
+    MDataHandle hDeltaTime = hCompond.child ( mDeltaTime );
+    MTime deltaTime = hDeltaTime.asTime();
+
+
+	// get input forces
+	MArrayDataHandle inputForceAD = block.inputArrayValue ( mInputForce );
+	int numForces  = inputForceAD.elementCount();
+	inputForceAD.jumpToElement ( 0 );
+
+	if ( numForces > 0 )
+	{
+
+		// check size of input arrays weights priorities dithering factors
+
+		/*			// check size of influence data
+
+					int influenceDataSize = influenceDataV.length();
+
+					// if necessary update influence data size
+
+					if (influenceDataSize != numForces)
+					{
+						if (influenceDataSize < numForces)
+						{
+							for (int e=influenceDataSize-1; e<numForces; e++)
+								influenceDataV.append(1.0);
+						}
+						else
+						{
+							do
+							{
+								influenceDataV.remove(influenceDataSize-1);
+								influenceDataSize = influenceDataV.length();
+							}
+							while (influenceDataV.length() > numForces);
+						}
+					}
+		*/
+		// get combine forces
+		short combineModeV = combineModeValue ( block );
+
+		// create needed variables
+		MVectorArray outForces;
+
+		switch ( combineModeV )
+		{
+		case CM_LINEAR:
+			cdLinear ( inputForceAD,numForces,outForces );
+			break;
+		case CM_WEIGHTS:
+			cdWeights ( inputForceAD,numForces,block,outForces );
+			break;
+		case CM_PRIORITY:
+			cdPriorities ( inputForceAD,numForces,block,outForces );
+			break;
+		case CM_SELECT:
+			cdSelect ( inputForceAD,block,outForces );
+			break;
+		}
+
+
+		// get output data handle
+		//
+		MArrayDataHandle hOutArray = block.outputArrayValue ( mOutputForce, &status );
+		McheckErr ( status, "ERROR in hOutArray = block.outputArrayValue.\n" );
+
+		MArrayDataBuilder bOutArray = hOutArray.builder ( &status );
+		McheckErr ( status, "ERROR in bOutArray = hOutArray.builder.\n" );
+
+		// get output force array from block.
+		//
+		MDataHandle hOut = bOutArray.addElement ( multiIndex, &status );
+		McheckErr ( status, "ERROR in hOut = bOutArray.addElement.\n" );
+
+		MFnVectorArrayData fnOutputForce;
+		MObject dOutputForce = fnOutputForce.create ( outForces, &status );
+
+		McheckErr ( status, "ERROR in dOutputForce = fnOutputForce.create\n" );
+
+		// update data block with new output force data.
+		//
+		hOut.set ( dOutputForce );
+		block.setClean ( plug );
+
+		// store influence data
 
 //			hOut = data.outputValue( influenceData, &stat);
 //			MFnDoubleArrayData fnInfluenceDataV;
 
 //			dInfluenceDataV = fnInfluenceDataV.create( influenceDataV, &stat );
 
-            // update data block with new influence data
+		// update data block with new influence data
 //			hOut.set( dInfluenceDataV );
 
 
-            outForces.clear();
-        }
-        return MS::kSuccess;
-    }
-
-    return MS::kSuccess;
+		outForces.clear();
+	}
+return MS::kSuccess;
 }
 
 /************************************************************************************/
@@ -238,6 +372,7 @@ MDoubleArray bbCombineDesires::getWeights ( MDataBlock& data, int numForces )
 
     return weights;
 }
+
 /************************************************************************************/
 // get priorities
 
@@ -270,6 +405,7 @@ MIntArray bbCombineDesires::getPriorities ( MDataBlock& data, int numForces )
 
     return priorities;
 }
+
 /************************************************************************************/
 // weighted combination
 
@@ -390,6 +526,7 @@ void bbCombineDesires::cdSelect ( MArrayDataHandle &inputForceAD, MDataBlock& da
 
     MDataHandle hCurrForces;
     MObject dCurrForces;
+	outForces.clear();
 
     short selectedForceV = selectedForceValue ( data );
 
@@ -400,114 +537,11 @@ void bbCombineDesires::cdSelect ( MArrayDataHandle &inputForceAD, MDataBlock& da
         hCurrForces = inputForceAD.inputValue ( &stat );
         dCurrForces = hCurrForces.data();
         outForces.copy ( MFnVectorArrayData ( dCurrForces ).array ( &stat ) );
+		cout << outForces << endl;
     }
 }
 
 
-/************************************************************************************/
-/************************************************************************************/
-/************************************************************************************/
-/************************************************************************************/
-/************************************************************************************/
 
-void* bbCombineDesires::creator()
-{
-    return new bbCombineDesires();
-}
-
-/************************************************************************************/
-
-MStatus bbCombineDesires::initialize()
-{
-    MGlobal::displayInfo ( "bbCombineDesires... loaded" );
-
-    MFnNumericAttribute nAttr;
-    MStatus				stat;
-
-    MFnTypedAttribute	tAttr;
-    MFnEnumAttribute	eAttr;
-
-    inputForce=tAttr.create ( "inputForce", "if", MFnVectorArrayData::kVectorArray , &stat );
-    stat = tAttr.setArray ( true );
-
-//	influenceData = tAttr.create( "influenceData", "id", MFnDoubleArrayData::kDoubleArray , &stat );
-//	tAttr.setStorable(true);
-
-    selectedForce = nAttr.create ( "selectedForce","sef",MFnNumericData::kShort,0 );
-    nAttr.setMin ( 0 );
-    nAttr.setMax ( 50 );
-    nAttr.setStorable ( true );
-
-    outputForce=tAttr.create ( "outputForce", "of", MFnVectorArrayData::kVectorArray , &stat );
-    stat = tAttr.setStorable ( false );
-
-    weight = nAttr.create ( "weight","wgt",MFnNumericData::kDouble,1.0 );
-    nAttr.setArray ( true );
-    nAttr.setReadable ( true );
-    nAttr.setStorable ( true );
-    nAttr.setUsesArrayDataBuilder ( true );
-
-
-    priority = nAttr.create ( "priority","pri",MFnNumericData::kShort,1 );
-    nAttr.setArray ( true );
-    nAttr.setReadable ( true );
-    nAttr.setStorable ( true );
-    nAttr.setUsesArrayDataBuilder ( true );
-
-    ditheringFactor = nAttr.create ( "ditheringFactor","df",MFnNumericData::kDouble,1.0 );
-    nAttr.setMin ( 0.0 );
-    nAttr.setMax ( 1.0 );
-    nAttr.setArray ( true );
-    nAttr.setReadable ( true );
-    nAttr.setStorable ( true );
-    nAttr.setUsesArrayDataBuilder ( true );
-
-    numForces = nAttr.create ( "numForces","nf",MFnNumericData::kShort,0 );
-    nAttr.setStorable ( true );
-    nAttr.setReadable ( true );
-    nAttr.setWritable ( true );
-
-
-    combineMode = eAttr.create ( "combineMode", "cm", CM_LINEAR );
-    eAttr.addField ( "Linear", CM_LINEAR );
-    eAttr.addField ( "Weights", CM_WEIGHTS );
-    eAttr.addField ( "Priority", CM_PRIORITY );
-//		eAttr.addField("Strongest", CM_STRONGEST);
-//		eAttr.addField("Weakest", CM_WEAKEST);
-    eAttr.addField ( "Selection", CM_SELECT );
-    //	eAttr.addField("Priorized Dithering", CM_PRIORIZEDDITHERING);
-
-    eAttr.setStorable ( true );
-
-    // Add the attributes we have created to the node
-
-#define nodeAddAttribute(_attr) 	\
-			stat = addAttribute( _attr );	\
-			if (!stat) { stat.perror("addAttribute"); return stat;} \
-
-    nodeAddAttribute ( inputForce );
-    nodeAddAttribute ( outputForce );
-    nodeAddAttribute ( combineMode );
-    nodeAddAttribute ( selectedForce );
-    nodeAddAttribute ( weight );
-    nodeAddAttribute ( priority );
-    nodeAddAttribute ( ditheringFactor );
-    nodeAddAttribute ( numForces );
-
-    // Set up a dependency between the input and the output.
-
-#define nodeSetDependency(_attr1, _attr2) \
-			stat = attributeAffects( _attr1, _attr2 ); \
-			if (!stat) { stat.perror("attributeAffects"); return stat;} \
-
-    nodeSetDependency ( inputForce,outputForce );
-    nodeSetDependency ( selectedForce,outputForce );
-    nodeSetDependency ( combineMode,outputForce );
-    nodeSetDependency ( weight,outputForce );
-    nodeSetDependency ( priority,outputForce );
-    nodeSetDependency ( ditheringFactor,outputForce );
-
-    return MS::kSuccess;
-}
 
 
