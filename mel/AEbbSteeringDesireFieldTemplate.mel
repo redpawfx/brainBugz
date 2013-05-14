@@ -156,7 +156,7 @@ global proc targetTypeGrpNew( string $targetType, string $subTargets, string $in
 {
 	string $nodeName = substring($nodeName,1,size($nodeName)-2);
 
-	rowColumnLayout -nc 3 -cw 1 133 rcLayout;
+	rowColumnLayout -nc 4 -cw 1 100 rcLayout;
 
 	radioCollection targetTypeCollection;
 		text -l "Target Type  " -al "right";
@@ -172,6 +172,7 @@ global proc targetTypeGrpNew( string $targetType, string $subTargets, string $in
     				curveRB;
 
     	text -l"";
+		text -l"";
 
     	radioButton -label "Surface"
     			 	-data 3
@@ -183,7 +184,7 @@ global proc targetTypeGrpNew( string $targetType, string $subTargets, string $in
     				-cc ("activeSDAttributes "+$nodeName)
     				meshRB;
 
-    	text -l"";	text -l"";	text -l"";
+    	text -l"";	text -l"";	text -l""; text -l""; text -l"";
 
     radioCollection subTargetsCollection;
     	text -l "Sub Targets  " -al "right";
@@ -198,7 +199,7 @@ global proc targetTypeGrpNew( string $targetType, string $subTargets, string $in
     				-cc ("activeSDAttributes "+$nodeName)
     				knotsRB;
 
-   		text -l""; text -l""; text -l"";
+   		text -l""; text -l""; text -l""; text -l""; text -l"";
 
     radioCollection inputSelectionCollection;
     	text -l "Input Selection  " -al "right";
@@ -212,6 +213,10 @@ global proc targetTypeGrpNew( string $targetType, string $subTargets, string $in
     				-data 0
     				-cc ("activeSDAttributes "+$nodeName)
     				indexRB;
+		radioButton -label "PP"
+    				-data 2
+    				-cc ("activeSDAttributes "+$nodeName)
+    				PPRB;
 
     	setParent ..;
 

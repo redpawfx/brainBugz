@@ -634,7 +634,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
             getTargetsFromMesh ( block,pointsSize,targetArrayVec);
             break;
         }
-        sdSeekTargets ( block,points,velocities,targetArrayVec,forceArray );
+        sdSeekTargets ( block,points,velocities,targetIndex,targetArrayVec,forceArray );
     }
     break;
 
@@ -655,7 +655,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
             getTargetsFromMesh ( block,pointsSize,targetArrayVec );
 			break;
         }
-        sdMothSeekTargets ( block,points,velocities,targetArrayVec,forceArray );
+        sdMothSeekTargets ( block,points,velocities,targetIndex,targetArrayVec,forceArray );
     }
     break;
 
@@ -1042,7 +1042,7 @@ void bbSteeringDesire::getTargetsFromPoint ( MDataBlock& block,vector<MPointArra
 
     switch ( inputSelectionV )
     {
-		case IS_ALL || IS_PP:
+		case IS_ALL :
 		{
 			for ( int i=0; i<numPoint; i++ )
 			{
@@ -1099,7 +1099,7 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, vect
 
     switch ( inputSelectionV )
     {
-    case IS_ALL || IS_PP:
+    case IS_ALL :
     {
         switch ( subTargetsV )
         {
@@ -1311,7 +1311,7 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, ve
 
     switch ( inputSelectionV )
     {
-    case IS_ALL || IS_PP:
+    case IS_ALL:
     {
         switch ( subTargetsV )
         {
@@ -1599,7 +1599,7 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block, int posSize, vect
 
     switch ( inputSelectionV )
     {
-    case IS_ALL || IS_PP:
+    case IS_ALL:
     {
         switch ( subTargetsV )
         {
@@ -1708,7 +1708,7 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block, int posSize, vect
 
         case ST_KNOTS:
         {
-            int meshPointSize;
+            //int meshPointSize;
 
             for ( int j=0; j<numMesh; j++ )
             {
@@ -1725,6 +1725,36 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block, int posSize, vect
 
                 //for ( int e=0; e<meshPointSize; e++ )
                 //    target.append ( MVector ( meshPoint[e] ) );
+
+                inputMeshAD.next();
+            }
+
+        }
+        break;
+        }
+    }
+    break;
+	case IS_PP:
+    {
+        switch ( subTargetsV )
+        {
+        case ST_UNIFORM:
+        break;
+
+        case ST_KNOTS:
+        {
+            //int meshPointSize;
+
+            for ( int j=0; j<numMesh; j++ )
+            {
+                elementHandle = inputMeshAD.inputValue ( &stat );
+                MObject mesh = elementHandle.asMeshTransformed();
+                MFnMesh meshFn ( mesh, &stat );
+
+                MPointArray meshPoint;
+                meshFn.getPoints ( meshPoint );
+
+				target.push_back(meshPoint);
 
                 inputMeshAD.next();
             }
@@ -1819,6 +1849,7 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block, int posSize, vect
 void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
                                        const MVectorArray &positions,
                                        const MVectorArray &velocities,
+									   const MDoubleArray &targetIndex,
                                        const vector<MPointArray> &target,
                                        MVectorArray &outputForce )
 {
@@ -1836,6 +1867,7 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
     bool useSensorAngleV = useSensorAngleValue ( block );
     double sensorAngle = sensorAngleValue ( block );
 
+
     // get inverse faktor
     double scaleDesiredForceV = 1.0;
     if ( inverseDesiredSteeringForceValue ( block ) )
@@ -1844,21 +1876,36 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
     //
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
+	short inputSelectionV = inputSelectionValue ( block );
 
 	if (target.size() > 0)
 	{
-		int targetSize = target[0].length();
+		MIntArray targetPointsCount(target.size());
+
 		int posSize = positions.length();
 
-		int j = 0;
-
-		MVector desiredVelocityV ( 0.0,0.0,0.0 );
+		// this could be more throrough, but  in general if the first target has no points, then its probably not going to work.
+		int targetSize = target[0].length();
+ 		MVector desiredVelocityV ( 0.0,0.0,0.0 );
 
 		if ( targetSize != 0 )
 		{
+			int targetIndexV = 0;
 			for ( int i = 0; i < posSize; i ++ )
 			{
-				desiredVelocityV = target[0][j] - positions[i];
+				// if we're using  PP targetIndexes  we  set the index here
+				if (inputSelectionV == IS_PP && targetIndex.length() == posSize)
+				{
+					targetIndexV = int(targetIndex[i]);
+				}
+
+				if (targetIndexV > (target.size()-1) || targetIndexV < 0)
+				{
+					targetIndexV = 0;
+				}
+
+				desiredVelocityV = target[targetIndexV][targetPointsCount[targetIndexV]] - positions[i];
+
 
 				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
 				{
@@ -1870,8 +1917,19 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
 					outputForce.append ( MVector::zero );
 				}
 
-				j++;
-				if ( j == targetSize ) j=0;
+				targetPointsCount[targetIndexV]++;
+				if ( targetPointsCount[targetIndexV] == target[targetIndexV].length() )
+				{
+					targetPointsCount[targetIndexV] = 0;
+					if (inputSelectionV == IS_ALL && targetIndexV < target.size()-1)
+					{
+						targetIndexV ++;
+					}
+					else
+					{
+						targetIndexV = 0;
+					}
+				}
 			}
 		}
 	}
@@ -1881,6 +1939,7 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
 void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &targetIndex,
         const vector<MPointArray> &target,
         MVectorArray &outputForce )
 {
@@ -1907,22 +1966,36 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
     double magValue	= block.inputValue ( mMagnitude ).asDouble();
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
+	short inputSelectionV = inputSelectionValue ( block );
 
 	if (target.size() > 0)
 	{
-		int targetSize = target[0].length();
+		MIntArray targetPointsCount(target.size());
+
 		int posSize = positions.length();
 
-		int j =0;
-
+		// this could be more throrough, but  in general if the first target has no points, then its probably not going to work.
+		int targetSize = target[0].length();
 
 		MVector desiredVelocityV ( 0.0,0.0,0.0 );
 
 		if ( targetSize != 0 )
 		{
+			int targetIndexV = 0;
 			for ( int i =0 ; i < posSize; i ++ )
 			{
-				desiredVelocityV = target[0][j] - positions[i];
+				// if we're using  PP targetIndexes  we  set the index here
+				if (inputSelectionV == IS_PP && targetIndex.length() == posSize)
+				{
+					targetIndexV = int(targetIndex[i]);
+				}
+
+				if (targetIndexV > (target.size()-1) || targetIndexV < 0)
+				{
+					targetIndexV = 0;
+				}
+				desiredVelocityV = target[targetIndexV][targetPointsCount[targetIndexV]] - positions[i];
+
 
 				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
 				{
@@ -1934,8 +2007,19 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
 					outputForce.append ( MVector::zero );
 				}
 
-				j++;
-				if ( j == targetSize ) j=0;
+				targetPointsCount[targetIndexV]++;
+				if ( targetPointsCount[targetIndexV] == target[targetIndexV].length() )
+				{
+					targetPointsCount[targetIndexV] = 0;
+					if (inputSelectionV == IS_ALL && targetIndexV < target.size()-1)
+					{
+						targetIndexV ++;
+					}
+					else
+					{
+						targetIndexV = 0;
+					}
+				}
 			}
 		}
 	}

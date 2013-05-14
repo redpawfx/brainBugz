@@ -151,8 +151,8 @@ private:
     void	getTargetsFromSurface ( MDataBlock& block,int posSize,std::vector<MPointArray> &target );
     void	getTargetsFromMesh ( MDataBlock& block,int posSize,std::vector<MPointArray> &target );
 
-    void	sdSeekTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, MVectorArray &outputForce );
-    void	sdMothSeekTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, MVectorArray &outputForce );
+    void	sdSeekTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const MDoubleArray &targetIndex, const std::vector<MPointArray> &target, MVectorArray &outputForce );
+    void	sdMothSeekTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const MDoubleArray &targetIndex, const std::vector<MPointArray> &target, MVectorArray &outputForce );
     void	sdArrivalTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, MVectorArray &outputForce );
     void	sdPursuitTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, MVectorArray &outputForce );
     void	sdShadowTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, const MTime &deltaTime, MVectorArray &outputForce );
