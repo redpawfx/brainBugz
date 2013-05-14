@@ -33,9 +33,11 @@
 #include <maya/MFnMesh.h>
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MGlobal.h>
+#include <maya/MPlugArray.h>
 
 #include "bbSteeringDesireField.h"
 #include "MTools.h"
+#include "bbUtils.h"
 
 
 using namespace std;
@@ -86,7 +88,8 @@ MTypeId     bbSteeringDesire::id ( 0x0011A306 );
 
 #define IS_INDEX		0
 #define IS_ALL			1
-#define IS_AVERAGE		2
+#define IS_PP			2
+#define IS_AVERAGE		3
 
 // wander choose speed
 
@@ -181,10 +184,30 @@ bbSteeringDesire::bbSteeringDesire()
 
 bbSteeringDesire::~bbSteeringDesire()
 {
+	MDGMessage::removeCallback ( dynConnectionMade );
 }
 
 void bbSteeringDesire::postConstructor()
 {
+	MStatus stat;
+    dynConnectionMade = MDGMessage::addConnectionCallback ( bbSteeringDesire::connectionMadeCallbk, NULL, &stat );
+}
+
+/// Creates the BB target attribute on the  particle object
+void bbSteeringDesire::connectionMadeCallbk ( MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData )
+{
+
+    MStatus status;
+    MFnDependencyNode srcNode ( srcPlug.node() );
+    MFnDependencyNode destNode ( destPlug.node() );
+
+    if ( srcNode.typeId() == bbSteeringDesire::id && ( destNode.typeName() =="particle" || destNode.typeName() =="nParticle" ) )
+    {
+        MObject  particleShapeNode 	=  destPlug.node ( &status );
+        MFnParticleSystem part ( particleShapeNode, &status );
+
+		bbUtils::createPPAttr ( part, "brainTargetIndex", "bti", 1);
+    }
 }
 
 /**************************************************************************************/
@@ -192,7 +215,7 @@ void bbSteeringDesire::postConstructor()
 MStatus bbSteeringDesire::initialize()
 {
 
-	cout << "bbSteeringDesireField v1.5 initialized (c)Carsten Kolve/Shawn Lipowski/redpawFX 2013" << endl;
+	cout << "bbSteeringDesireField v1.6 initialized (c)Carsten Kolve/Shawn Lipowski/redpawFX 2013" << endl;
 #define nodeCreateAttrDouble(_name, _shortname, _value) \
 			_name = nAttr.create( #_name, #_shortname, MFnNumericData::kDouble, _value); \
 
@@ -269,6 +292,7 @@ MStatus bbSteeringDesire::initialize()
     inputSelection = eAttr.create ( "inputSelection", "tis", IS_INDEX );
     eAttr.addField ( "Index",IS_INDEX );
     eAttr.addField ( "All connected",IS_ALL );
+	eAttr.addField ( "PP Index", IS_PP );
     //	eAttr.addField("Average",IS_AVERAGE);
     eAttr.setStorable ( true );
 
@@ -541,6 +565,28 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
 
     MDataHandle hDeltaTime = hCompond.child ( mDeltaTime );
     MTime deltaTime = hDeltaTime.asTime();
+
+
+	// get the targetIndex if we desire it
+	MDoubleArray targetIndex;
+
+	short inputSelectionV = inputSelectionValue ( block );
+	if (inputSelectionV == IS_PP)
+	{
+		MPlugArray  connectionArray;
+		plug.connectedTo ( connectionArray, FALSE, TRUE, &status );
+		McheckErr ( status, "ERROR  can't find particle shape connection\n" );
+		MPlug particleShapeInForcePlug =  connectionArray[0];
+
+		MString particleShapeName = particleShapeInForcePlug.name();
+		MObject  particleShapeNode =  particleShapeInForcePlug.node ( &status );
+		McheckErr ( status, "ERROR getting particleShape node\n" );
+
+		MFnParticleSystem part ( particleShapeNode, &status );
+		McheckErr ( status, "ERROR creating reference to particleShapeNode\n" );
+
+		part.getPerParticleAttribute("brainTargetIndex", targetIndex);
+	}
 
     // Compute the output force.
     //
@@ -994,26 +1040,38 @@ void bbSteeringDesire::getTargetsFromPoint ( MDataBlock& block,MVectorArray &tar
 
     switch ( inputSelectionV )
     {
-    case IS_ALL:
-    {
-        for ( int i=0; i<numPoint; i++ )
-        {
-            elementHandle = inputPointAD.inputValue ( &stat );
-            if ( stat==MS::kSuccess )
-                target.append ( elementHandle.asVector() );
-            stat = inputPointAD.next ();
-        }
-    }
-    break;
-    case IS_INDEX:
-        stat = inputPointAD.jumpToElement ( inputIndexValue ( block ) );
-        if ( stat==MS::kSuccess )
-        {
-            elementHandle = inputPointAD.inputValue ( &stat );
-            target.append ( elementHandle.asVector() );
-        }
-        break;
-    }
+		case IS_ALL:
+		{
+			for ( int i=0; i<numPoint; i++ )
+			{
+				elementHandle = inputPointAD.inputValue ( &stat );
+				if ( stat==MS::kSuccess )
+					target.append ( elementHandle.asVector() );
+				stat = inputPointAD.next ();
+			}
+		}
+		break;
+		case IS_INDEX:
+		{
+			stat = inputPointAD.jumpToElement ( inputIndexValue ( block ) );
+			if ( stat==MS::kSuccess )
+			{
+				elementHandle = inputPointAD.inputValue ( &stat );
+				target.append ( elementHandle.asVector() );
+			}
+			break;
+		}
+		case IS_PP:
+		{
+			stat = inputPointAD.jumpToElement ( inputIndexValue ( block ) );
+			if ( stat==MS::kSuccess )
+			{
+				elementHandle = inputPointAD.inputValue ( &stat );
+				target.append ( elementHandle.asVector() );
+			}
+			break;
+		}
+	}
 }
 
 /**************************************************************************************/
@@ -4034,3 +4092,5 @@ void fillSumArray ( MIntArray & sumA, int size )
 
 }
 */
+
+

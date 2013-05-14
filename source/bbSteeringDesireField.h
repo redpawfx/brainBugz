@@ -20,6 +20,8 @@
 #include <maya/MPlug.h>
 #include <maya/MDataBlock.h>
 #include <maya/MPxFieldNode.h>
+#include <maya/MDGMessage.h>
+#include <maya/MMessage.h>
 
 #define McheckErr(stat, msg)		\
 	if ( MS::kSuccess != stat )		\
@@ -43,6 +45,9 @@ public:
     static  void *creator();
     static  MStatus		initialize();
     virtual void  postConstructor();
+
+	static void   connectionMadeCallbk ( MPlug &srcPlug, MPlug &destPlug, bool made, void *clientData );
+    MCallbackId   dynConnectionMade;
 
     virtual MStatus		compute ( const MPlug& plug, MDataBlock& block );
 
