@@ -44,7 +44,7 @@ clean:
 # Specific Rules #
 ##################
 
-SOURCES =  ./source/bbCombineDesiresField.cpp  ./source/bbSteeringDesireField.cpp ./source/pluginMain.cpp
+SOURCES =  ./source/bbUtils.cpp ./source/bbCombineDesiresField.cpp  ./source/bbSteeringDesireField.cpp ./source/pluginMain.cpp
 
 
 OBJS = $(SOURCES:.cpp=.o)

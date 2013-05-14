@@ -593,6 +593,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
 
     MVectorArray forceArray;
     MVectorArray targetArray;
+	vector<MPointArray> targetArrayVec;
 
     short steeringDesireV = steeringDesireValue ( block );
     short targetTypeV = targetTypeValue ( block );
@@ -621,19 +622,19 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         switch ( targetTypeV )
         {
         case TS_POINT:
-            getTargetsFromPoint ( block,targetArray );
+            getTargetsFromPoint ( block,targetArrayVec );
             break;
         case TS_CURVE:
-            getTargetsFromCurve ( block,pointsSize,targetArray );
+            getTargetsFromCurve ( block,pointsSize,targetArrayVec );
             break;
         case TS_SURFACE:
-            getTargetsFromSurface ( block,pointsSize,targetArray );
+            getTargetsFromSurface ( block,pointsSize,targetArrayVec );
             break;
         case TS_MESH:
-            getTargetsFromMesh ( block,pointsSize,targetArray );
+            getTargetsFromMesh ( block,pointsSize,targetArrayVec);
             break;
         }
-        sdSeekTargets ( block,points,velocities,targetArray,forceArray );
+        sdSeekTargets ( block,points,velocities,targetArrayVec,forceArray );
     }
     break;
 
@@ -642,19 +643,19 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         switch ( targetTypeV )
         {
         case TS_POINT:
-            getTargetsFromPoint ( block,targetArray );
+            getTargetsFromPoint ( block,targetArrayVec );
             break;
         case TS_CURVE:
-            getTargetsFromCurve ( block,pointsSize,targetArray );
+            getTargetsFromCurve ( block,pointsSize,targetArrayVec );
             break;
         case TS_SURFACE:
-            getTargetsFromSurface ( block,pointsSize,targetArray );
+            getTargetsFromSurface ( block,pointsSize,targetArrayVec );
             break;
         case TS_MESH:
-            getTargetsFromMesh ( block,pointsSize,targetArray );
-            break;
+            getTargetsFromMesh ( block,pointsSize,targetArrayVec );
+			break;
         }
-        sdMothSeekTargets ( block,points,velocities,targetArray,forceArray );
+        sdMothSeekTargets ( block,points,velocities,targetArrayVec,forceArray );
     }
     break;
 
@@ -663,19 +664,19 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         switch ( targetTypeV )
         {
         case TS_POINT:
-            getTargetsFromPoint ( block,targetArray );
+            getTargetsFromPoint ( block,targetArrayVec );
             break;
         case TS_CURVE:
-            getTargetsFromCurve ( block,pointsSize,targetArray );
+            getTargetsFromCurve ( block,pointsSize,targetArrayVec );
             break;
         case TS_SURFACE:
-            getTargetsFromSurface ( block,pointsSize,targetArray );
+            getTargetsFromSurface ( block,pointsSize,targetArrayVec );
             break;
         case TS_MESH:
-            getTargetsFromMesh ( block,pointsSize,targetArray );
+            getTargetsFromMesh ( block,pointsSize,targetArrayVec );
             break;
         }
-        sdArrivalTargets ( block,points,velocities,targetArray,forceArray );
+        sdArrivalTargets ( block,points,velocities,targetArrayVec,forceArray );
     }
     break;
 
@@ -684,19 +685,19 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         switch ( targetTypeV )
         {
         case TS_POINT:
-            getTargetsFromPoint ( block,targetArray );
+            getTargetsFromPoint ( block,targetArrayVec );
             break;
         case TS_CURVE:
-            getTargetsFromCurve ( block,pointsSize,targetArray );
+            getTargetsFromCurve ( block,pointsSize,targetArrayVec );
             break;
         case TS_SURFACE:
-            getTargetsFromSurface ( block,pointsSize,targetArray );
+            getTargetsFromSurface ( block,pointsSize,targetArrayVec );
             break;
         case TS_MESH:
-            getTargetsFromMesh ( block,pointsSize,targetArray );
+            getTargetsFromMesh ( block,pointsSize,targetArrayVec );
             break;
         }
-        sdPursuitTargets ( block,points,velocities,targetArray,forceArray );
+        sdPursuitTargets ( block,points,velocities,targetArrayVec,forceArray );
     }
     break;
 
@@ -705,19 +706,19 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         switch ( targetTypeV )
         {
         case TS_POINT:
-            getTargetsFromPoint ( block,targetArray );
+            getTargetsFromPoint ( block,targetArrayVec );
             break;
         case TS_CURVE:
-            getTargetsFromCurve ( block,pointsSize,targetArray );
+            getTargetsFromCurve ( block,pointsSize,targetArrayVec );
             break;
         case TS_SURFACE:
-            getTargetsFromSurface ( block,pointsSize,targetArray );
+            getTargetsFromSurface ( block,pointsSize,targetArrayVec );
             break;
         case TS_MESH:
-            getTargetsFromMesh ( block,pointsSize,targetArray );
+            getTargetsFromMesh ( block,pointsSize,targetArrayVec );
             break;
         }
-        sdShadowTargets ( block,points,velocities,targetArray,deltaTime,forceArray );
+        sdShadowTargets ( block,points,velocities,targetArrayVec,deltaTime,forceArray );
     }
     break;
 
@@ -1020,7 +1021,7 @@ MStatus bbSteeringDesire::getForceAtPoint ( const MVectorArray&	points,
 }
 
 /**************************************************************************************/
-void bbSteeringDesire::getTargetsFromPoint ( MDataBlock& block,MVectorArray &target )
+void bbSteeringDesire::getTargetsFromPoint ( MDataBlock& block,vector<MPointArray> &target )
 {
     MStatus stat;
     MArrayDataHandle inputPointAD = block.inputArrayValue ( inputPoint, &stat );
@@ -1037,16 +1038,19 @@ void bbSteeringDesire::getTargetsFromPoint ( MDataBlock& block,MVectorArray &tar
     target.clear();
 
     short inputSelectionV = inputSelectionValue ( block );
+	MPointArray targetPoints;
 
     switch ( inputSelectionV )
     {
-		case IS_ALL:
+		case IS_ALL || IS_PP:
 		{
 			for ( int i=0; i<numPoint; i++ )
 			{
 				elementHandle = inputPointAD.inputValue ( &stat );
 				if ( stat==MS::kSuccess )
-					target.append ( elementHandle.asVector() );
+					targetPoints.append ( elementHandle.asVector() );
+
+				target.push_back(targetPoints);
 				stat = inputPointAD.next ();
 			}
 		}
@@ -1057,25 +1061,16 @@ void bbSteeringDesire::getTargetsFromPoint ( MDataBlock& block,MVectorArray &tar
 			if ( stat==MS::kSuccess )
 			{
 				elementHandle = inputPointAD.inputValue ( &stat );
-				target.append ( elementHandle.asVector() );
+				targetPoints.append ( elementHandle.asVector() );
 			}
-			break;
-		}
-		case IS_PP:
-		{
-			stat = inputPointAD.jumpToElement ( inputIndexValue ( block ) );
-			if ( stat==MS::kSuccess )
-			{
-				elementHandle = inputPointAD.inputValue ( &stat );
-				target.append ( elementHandle.asVector() );
-			}
+			target.push_back(targetPoints);
 			break;
 		}
 	}
 }
 
 /**************************************************************************************/
-void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVectorArray &target )
+void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, vector<MPointArray> &target )
 {
     MStatus stat;
 
@@ -1104,7 +1099,7 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVec
 
     switch ( inputSelectionV )
     {
-    case IS_ALL:
+    case IS_ALL || IS_PP:
     {
         switch ( subTargetsV )
         {
@@ -1175,12 +1170,14 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVec
 
                     double ppCoef = ( endParam-startParam ) /targetsPerCurve[i] ;
                     MPoint targetPoint;
+					MPointArray targetPoints;
 
                     for ( int j=0; j<targetsPerCurve[i] ; j++ )
                     {
                         curveFn.getPointAtParam ( ( ppCoef* ( j+1 ) +startParam ),targetPoint );
-                        target.append ( MVector ( targetPoint ) );
+                        targetPoints.append ( MVector ( targetPoint ) );
                     }
+                    target.push_back(targetPoints);
                 }
 
                 inputCurveAD.next();
@@ -1192,6 +1189,7 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVec
         {
             MDoubleArray knots;
             MPoint targetPoint;
+			MPointArray targetPoints;
 
             for ( int j=0; j<numCurve; j++ )
             {
@@ -1206,9 +1204,9 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVec
                 for ( int i = 0; i < knotsSize; i++ )
                 {
                     curveFn.getPointAtParam ( knots[i],targetPoint );
-                    target.append ( MVector ( targetPoint ) );
+                    targetPoints.append ( MVector ( targetPoint ) );
                 }
-
+				target.push_back(targetPoints);
                 inputCurveAD.next();
             }
 
@@ -1245,12 +1243,14 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVec
 
                     double ppCoef = ( endParam-startParam ) /posSize ;
                     MPoint targetPoint;
+					MPointArray targetPoints;
 
                     for ( int i=0; i<posSize; i++ )
                     {
                         curveFn.getPointAtParam ( ppCoef* ( i+1 ),targetPoint );
-                        target.append ( MVector ( targetPoint ) );
+                        targetPoints.append ( MVector ( targetPoint ) );
                     }
+                    target.push_back(targetPoints);
                 }
             }
             break;
@@ -1262,12 +1262,15 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVec
 
                 int knotsSize = knots.length();
                 MPoint targetPoint;
+				MPointArray targetPoints;
 
                 for ( int i = 0; i < knotsSize; i++ )
                 {
                     curveFn.getPointAtParam ( knots[i],targetPoint );
-                    target.append ( MVector ( targetPoint ) );
+                    targetPoints.append ( MVector ( targetPoint ) );
+
                 }
+                target.push_back(targetPoints);
             }
             break;
             }
@@ -1279,7 +1282,7 @@ void bbSteeringDesire::getTargetsFromCurve ( MDataBlock& block,int posSize, MVec
 }
 
 /**************************************************************************************/
-void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MVectorArray &target )
+void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, vector<MPointArray> &target )
 {
     MStatus stat;
 
@@ -1308,7 +1311,7 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
 
     switch ( inputSelectionV )
     {
-    case IS_ALL:
+    case IS_ALL || IS_PP:
     {
         switch ( subTargetsV )
         {
@@ -1394,12 +1397,13 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
                     // get targets
 
                     MPoint targetPoint;
+					MPointArray targetPoints;
 
                     for ( int u=0; u<targetsPerU; u++ )
                         for ( int v=0; v<targetsPerU; v++ )
                         {
                             surfaceFn.getPointAtParam ( uCoef* ( u+1 ),vCoef* ( v+1 ),targetPoint );
-                            target.append ( MVector ( targetPoint ) );
+                            targetPoints.append ( MVector ( targetPoint ) );
                         }
 
                     int unTarget = targetsPerU*targetsPerV-targetsPerSurface[i];
@@ -1407,9 +1411,10 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
                     // remove unneccesary targets
 
                     for ( int k=0; k< unTarget; k++ )
-                        target.remove ( target.length()-1 );
-                }
+                        targetPoints.remove ( targetPoints.length()-1 );
 
+					target.push_back(targetPoints);
+                }
                 inputSurfaceAD.next();
             }
         }
@@ -1420,6 +1425,7 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
             MDoubleArray knotsU;
             MDoubleArray knotsV;
             MPoint targetPoint;
+			MPointArray targetPoints;
 
             for ( int j=0; j<numSurface; j++ )
             {
@@ -1441,15 +1447,15 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
                     {
                         surfaceFn.getPointAtParam ( knotsU[u],knotsV[v],targetPoint );
                         // ignore multiple knots
-                        short temp = target.length();
+                        short temp = targetPoints.length();
                         if ( temp>0 )
                         {
-                            if ( target[temp-1] != targetPoint )
-                                target.append ( MVector ( targetPoint ) );
+                            if ( targetPoints[temp-1] != targetPoint )
+                                targetPoints.append ( MVector ( targetPoint ) );
                         }
-                        else target.append ( MVector ( targetPoint ) );
+                        else targetPoints.append ( MVector ( targetPoint ) );
                     }
-
+				target.push_back(targetPoints);
                 inputSurfaceAD.next();
             }
 
@@ -1504,12 +1510,13 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
                     // get targets
 
                     MPoint targetPoint;
+					MPointArray targetPoints;
 
                     for ( int u=0; u<targetsPerU; u++ )
                         for ( int v=0; v<targetsPerU; v++ )
                         {
                             surfaceFn.getPointAtParam ( uCoef* ( u+1 ) +startU,vCoef* ( v+1 ) +startV,targetPoint );
-                            target.append ( MVector ( targetPoint ) );
+                            targetPoints.append ( MVector ( targetPoint ) );
                         }
 
                     int unTarget = targetsPerU*targetsPerV-posSize;
@@ -1517,7 +1524,9 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
                     // remove unneccesary targets
 
                     for ( int k=0; k< unTarget; k++ )
-                        target.remove ( target.length()-1 );
+                        targetPoints.remove ( targetPoints.length()-1 );
+
+					target.push_back(targetPoints);
                 }
             }
             break;
@@ -1534,20 +1543,22 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
                 int knotsVSize = knotsV.length();
 
                 MPoint targetPoint;
+				MPointArray targetPoints;
 
                 for ( int u = 0; u < knotsUSize; u++ )
                     for ( int v = 0; v < knotsVSize; v++ )
                     {
                         surfaceFn.getPointAtParam ( knotsU[u],knotsV[v],targetPoint );
                         // ignore multiple knots
-                        short temp = target.length();
+                        short temp = targetPoints.length();
                         if ( temp>0 )
                         {
-                            if ( target[temp-1] != targetPoint )
-                                target.append ( MVector ( targetPoint ) );
+                            if ( targetPoints[temp-1] != targetPoint )
+                                targetPoints.append ( MVector ( targetPoint ) );
                         }
-                        else target.append ( MVector ( targetPoint ) );
+                        else targetPoints.append ( MVector ( targetPoint ) );
                     }
+                    target.push_back(targetPoints);
             }
             break;
             }
@@ -1559,7 +1570,7 @@ void bbSteeringDesire::getTargetsFromSurface ( MDataBlock& block,int posSize, MV
 }
 /**************************************************************************************/
 
-void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block,int posSize, MVectorArray &target )
+void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block, int posSize, vector<MPointArray> &target )
 {
     MStatus stat;
 
@@ -1588,7 +1599,7 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block,int posSize, MVect
 
     switch ( inputSelectionV )
     {
-    case IS_ALL:
+    case IS_ALL || IS_PP:
     {
         switch ( subTargetsV )
         {
@@ -1707,10 +1718,13 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block,int posSize, MVect
 
                 MPointArray meshPoint;
                 meshFn.getPoints ( meshPoint );
-                meshPointSize =meshPoint.length();
 
-                for ( int e=0; e<meshPointSize; e++ )
-                    target.append ( MVector ( meshPoint[e] ) );
+				target.push_back(meshPoint);
+
+				//meshPointSize =meshPoint.length();
+
+                //for ( int e=0; e<meshPointSize; e++ )
+                //    target.append ( MVector ( meshPoint[e] ) );
 
                 inputMeshAD.next();
             }
@@ -1786,10 +1800,12 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block,int posSize, MVect
             {
                 MPointArray meshPoint;
                 meshFn.getPoints ( meshPoint );
-                int meshPointSize =meshPoint.length();
+				target.push_back(meshPoint);
 
-                for ( int e=0; e<meshPointSize; e++ )
-                    target.append ( MVector ( meshPoint[e] ) );
+                //int meshPointSize =meshPoint.length();
+
+                //for ( int e=0; e<meshPointSize; e++ )
+                //    target.append ( MVector ( meshPoint[e] ) );
             }
             break;
             }
@@ -1803,7 +1819,7 @@ void bbSteeringDesire::getTargetsFromMesh ( MDataBlock& block,int posSize, MVect
 void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
                                        const MVectorArray &positions,
                                        const MVectorArray &velocities,
-                                       const MVectorArray &target,
+                                       const vector<MPointArray> &target,
                                        MVectorArray &outputForce )
 {
     MStatus stat;
@@ -1829,40 +1845,43 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
 
-    int targetSize = target.length();
-    int posSize = positions.length();
+	if (target.size() > 0)
+	{
+		int targetSize = target[0].length();
+		int posSize = positions.length();
 
-    int j =0;
+		int j = 0;
 
-    MVector desiredVelocityV ( 0.0,0.0,0.0 );
+		MVector desiredVelocityV ( 0.0,0.0,0.0 );
 
-    if ( targetSize != 0 )
-    {
-        for ( int i = 0; i < posSize; i ++ )
-        {
-            desiredVelocityV = target[j] - positions[i];
+		if ( targetSize != 0 )
+		{
+			for ( int i = 0; i < posSize; i ++ )
+			{
+				desiredVelocityV = target[0][j] - positions[i];
 
-            if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
-            {
-                seekSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
-                outputForce.append ( desiredVelocityV );
-            }
-            else
-            {
-                outputForce.append ( MVector::zero );
-            }
+				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
+				{
+					seekSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
+					outputForce.append ( desiredVelocityV );
+				}
+				else
+				{
+					outputForce.append ( MVector::zero );
+				}
 
-            j++;
-            if ( j == targetSize ) j=0;
-        }
-    }
+				j++;
+				if ( j == targetSize ) j=0;
+			}
+		}
+	}
 
 }
 /**************************************************************************************/
 void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
-        const MVectorArray &target,
+        const vector<MPointArray> &target,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -1889,41 +1908,44 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
 
-    int targetSize = target.length();
-    int posSize = positions.length();
+	if (target.size() > 0)
+	{
+		int targetSize = target[0].length();
+		int posSize = positions.length();
 
-    int j =0;
+		int j =0;
 
 
-    MVector desiredVelocityV ( 0.0,0.0,0.0 );
+		MVector desiredVelocityV ( 0.0,0.0,0.0 );
 
-    if ( targetSize != 0 )
-    {
-        for ( int i =0 ; i < posSize; i ++ )
-        {
-            desiredVelocityV = target[j] - positions[i];
+		if ( targetSize != 0 )
+		{
+			for ( int i =0 ; i < posSize; i ++ )
+			{
+				desiredVelocityV = target[0][j] - positions[i];
 
-            if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
-            {
-                mothSeekSteering ( desiredVelocityV,desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
-                outputForce.append ( desiredVelocityV );
-            }
-            else
-            {
-                outputForce.append ( MVector::zero );
-            }
+				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
+				{
+					mothSeekSteering ( desiredVelocityV,desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
+					outputForce.append ( desiredVelocityV );
+				}
+				else
+				{
+					outputForce.append ( MVector::zero );
+				}
 
-            j++;
-            if ( j == targetSize ) j=0;
-        }
-    }
+				j++;
+				if ( j == targetSize ) j=0;
+			}
+		}
+	}
 
 }
 /**************************************************************************************/
 void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
-        const MVectorArray &target,
+        const vector<MPointArray> &target,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -1950,34 +1972,37 @@ void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
     double stoppingRangeV = stoppingRangeValue ( block );
     double magValue	= block.inputValue ( mMagnitude ).asDouble();
 
-    int targetSize = target.length();
-    int posSize = positions.length();
+	if (target.size() > 0)
+	{
+		int targetSize = target[0].length();
+		int posSize = positions.length();
 
-    int j =0;
+		int j =0;
 
 
-    MVector desiredVelocityV ( 0.0,0.0,0.0 );
+		MVector desiredVelocityV ( 0.0,0.0,0.0 );
 
-    if ( targetSize != 0 )
-    {
-        for (int i =0; i < posSize; i ++ )
-        {
-            desiredVelocityV = target[j] - positions[i];
+		if ( targetSize != 0 )
+		{
+			for (int i =0; i < posSize; i ++ )
+			{
+				desiredVelocityV = target[0][j] - positions[i];
 
-            if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
-            {
-                arrivalSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV,stoppingRangeV, magValue );
-                outputForce.append ( desiredVelocityV );
-            }
-            else
-            {
-                outputForce.append ( MVector::zero );
-            }
+				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
+				{
+					arrivalSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV,stoppingRangeV, magValue );
+					outputForce.append ( desiredVelocityV );
+				}
+				else
+				{
+					outputForce.append ( MVector::zero );
+				}
 
-            j++;
-            if ( j == targetSize ) j=0;
-        }
-    }
+				j++;
+				if ( j == targetSize ) j=0;
+			}
+		}
+	}
 
 }
 
@@ -1985,7 +2010,7 @@ void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
 void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
-        const MVectorArray &target,
+        const vector<MPointArray> &target,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -2012,78 +2037,80 @@ void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
     //double stoppingRangeV = stoppingRangeValue ( block );
     double magValue	= block.inputValue ( mMagnitude ).asDouble();
 
-    int targetSize = target.length();
-    int posSize = positions.length();
+	// get last offset values
+	MVectorArray lastTargetPos;
+	if (target.size() > 0)
+	{
+		int targetSize = target[0].length();
+		int posSize = positions.length();
 
-    int j =0;
+		int j =0;
 
-    // get last offset values
-    MVectorArray lastTargetPos;
+		MDataHandle hLastVectorV = block.inputValue ( lastVector, &stat );
+		MObject dLastVectorV = hLastVectorV.data();
+		lastTargetPos = MFnVectorArrayData ( dLastVectorV ).array ( &stat );
 
-    MDataHandle hLastVectorV = block.inputValue ( lastVector, &stat );
-    MObject dLastVectorV = hLastVectorV.data();
-    lastTargetPos = MFnVectorArrayData ( dLastVectorV ).array ( &stat );
+		int lastTargetPosSize = lastTargetPos.length();
 
-    int lastTargetPosSize = lastTargetPos.length();
+		// if necessary update last target size
 
-    // if necessary update last target size
+		if ( lastTargetPosSize != targetSize )
+		{
+			if ( lastTargetPosSize < targetSize )
+			{
+				for ( int e=lastTargetPosSize-1; e<targetSize; e++ )
+					lastTargetPos.append ( MVector::zero );
+			}
+			else
+			{
+				do
+				{
+					lastTargetPos.remove ( lastTargetPosSize-1 );
+					lastTargetPosSize = lastTargetPos.length();
+				}
+				while ( ( int ) lastTargetPos.length() > targetSize );
+			}
+		}
+		// calculate target velocities
 
-    if ( lastTargetPosSize != targetSize )
-    {
-        if ( lastTargetPosSize < targetSize )
-        {
-            for ( int e=lastTargetPosSize-1; e<targetSize; e++ )
-                lastTargetPos.append ( MVector::zero );
-        }
-        else
-        {
-            do
-            {
-                lastTargetPos.remove ( lastTargetPosSize-1 );
-                lastTargetPosSize = lastTargetPos.length();
-            }
-            while ( ( int ) lastTargetPos.length() > targetSize );
-        }
-    }
-    // calculate target velocities
+		MVectorArray targetVel ( targetSize,MVector::zero );
 
-    MVectorArray targetVel ( targetSize,MVector::zero );
+		for ( int e=0; e<targetSize; e++ )
+		{
+			// target Velocity
+			targetVel[e] = target[0][e] - lastTargetPos[e];
 
-    for ( int e=0; e<targetSize; e++ )
-    {
-        // target Velocity
-        targetVel[e] = target[e] - lastTargetPos[e];
+			// update last target value
+			lastTargetPos[e] = target[0][e];
+		}
+		//
 
-        // update last target value
-        lastTargetPos[e] = target[e];
-    }
-    //
+		MVector desiredVelocityV ( 0.0,0.0,0.0 );
+		double predictionS;
 
-    MVector desiredVelocityV ( 0.0,0.0,0.0 );
-    double predictionS;
+		if ( targetSize != 0 )
+		{
+			for ( int i = 0; i < posSize; i ++ )
+			{
+				desiredVelocityV = target[0][j] - positions[i];
 
-    if ( targetSize != 0 )
-    {
-        for ( int i = 0; i < posSize; i ++ )
-        {
-            desiredVelocityV = target[j] - positions[i];
+				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
+				{
+					predictionS = desiredVelocityV.length() * desiredSpeedV;
+					desiredVelocityV = target[0][j]+ targetVel[j]*predictionS - positions[i];
+					seekSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
+					outputForce.append ( desiredVelocityV );
+				}
+				else
+				{
+					outputForce.append ( MVector::zero );
+				}
 
-            if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
-            {
-                predictionS = desiredVelocityV.length() * desiredSpeedV;
-                desiredVelocityV = target[j]+ targetVel[j]*predictionS - positions[i];
-                seekSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
-                outputForce.append ( desiredVelocityV );
-            }
-            else
-            {
-                outputForce.append ( MVector::zero );
-            }
-
-            j++;
-            if ( j == targetSize ) j=0;
-        }
-    }
+				j++;
+				if ( j == targetSize ) j=0;
+			}
+		}
+	}
 
 
     // store last vector data
@@ -2102,7 +2129,7 @@ void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
 void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
-        const MVectorArray &target,
+        const vector<MPointArray> &target,
         const MTime &deltaTime,
         MVectorArray &outputForce )
 {
@@ -2130,93 +2157,95 @@ void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
     double shadowRangeV = shadowRangeValue ( block );
     double magValue	= block.inputValue ( mMagnitude ).asDouble();
 
-    int targetSize = target.length();
-    int posSize = positions.length();
+	// get last offset values
+	MVectorArray lastTargetPos;
+	if (target.size() > 0)
+	{
+		int targetSize = target[0].length();
+		int posSize = positions.length();
 
-    int j =0;
+		int j =0;
 
-    // get last offset values
-    MVectorArray lastTargetPos;
+		MDataHandle hLastVectorV = block.inputValue ( lastVector, &stat );
+		MObject dLastVectorV = hLastVectorV.data();
+		lastTargetPos = MFnVectorArrayData ( dLastVectorV ).array ( &stat );
 
-    MDataHandle hLastVectorV = block.inputValue ( lastVector, &stat );
-    MObject dLastVectorV = hLastVectorV.data();
-    lastTargetPos = MFnVectorArrayData ( dLastVectorV ).array ( &stat );
+		int lastTargetPosSize = lastTargetPos.length();
 
-    int lastTargetPosSize = lastTargetPos.length();
+		// if necessary update last target size
 
-    // if necessary update last target size
+		if ( lastTargetPosSize != targetSize )
+		{
+			if ( lastTargetPosSize < targetSize )
+			{
+				for ( int e=lastTargetPosSize-1; e<targetSize; e++ )
+					lastTargetPos.append ( MVector::zero );
+			}
+			else
+			{
+				do
+				{
+					lastTargetPos.remove ( lastTargetPosSize-1 );
+					lastTargetPosSize = lastTargetPos.length();
+				}
+				while ( ( int ) lastTargetPos.length() > targetSize );
+			}
+		}
+		// calculate target velocities
 
-    if ( lastTargetPosSize != targetSize )
-    {
-        if ( lastTargetPosSize < targetSize )
-        {
-            for ( int e=lastTargetPosSize-1; e<targetSize; e++ )
-                lastTargetPos.append ( MVector::zero );
-        }
-        else
-        {
-            do
-            {
-                lastTargetPos.remove ( lastTargetPosSize-1 );
-                lastTargetPosSize = lastTargetPos.length();
-            }
-            while ( ( int ) lastTargetPos.length() > targetSize );
-        }
-    }
-    // calculate target velocities
+		MVectorArray targetVel ( targetSize,MVector::zero );
 
-    MVectorArray targetVel ( targetSize,MVector::zero );
+		for ( int e=0; e<targetSize; e++ )
+		{
+			// target Velocity
+			targetVel[e] = target[0][e] - lastTargetPos[e];
 
-    for ( int e=0; e<targetSize; e++ )
-    {
-        // target Velocity
-        targetVel[e] = target[e] - lastTargetPos[e];
+			// update last target value
+			lastTargetPos[e] = target[0][e];
+		}
+		//
 
-        // update last target value
-        lastTargetPos[e] = target[e];
-    }
-    //
-
-    MVector desiredVelocityV ( 0.0,0.0,0.0 );
-    double deltaTimeV = deltaTime.as ( MTime::kSeconds );
-    if ( deltaTimeV != 0.0 )
-        deltaTimeV = 1 / deltaTimeV;
-
-
-    if ( targetSize != 0 )
-    {
-        for ( int i =0; i < posSize; i ++ )
-        {
-            desiredVelocityV = target[j] - positions[i];
-
-            if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
-            {
-                if ( desiredVelocityV.length() > shadowRangeV )
-                {
-                    seekSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
-                }
-                else
-                {
-                    desiredVelocityV =  deltaTimeV * targetVel[j] - velocities[i];
-
-                    // delta time
+		MVector desiredVelocityV ( 0.0,0.0,0.0 );
+		double deltaTimeV = deltaTime.as ( MTime::kSeconds );
+		if ( deltaTimeV != 0.0 )
+			deltaTimeV = 1 / deltaTimeV;
 
 
-                    desiredVelocityV *= scaleDesiredForceV;
-                    truncVector ( desiredVelocityV,maximumForceV );
-                }
+		if ( targetSize != 0 )
+		{
+			for ( int i =0; i < posSize; i ++ )
+			{
+				desiredVelocityV = target[0][j] - positions[i];
 
-                outputForce.append ( desiredVelocityV );
-            }
-            else
-            {
-                outputForce.append ( MVector::zero );
-            }
+				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
+				{
+					if ( desiredVelocityV.length() > shadowRangeV )
+					{
+						seekSteering ( desiredVelocityV,velocities[i],desiredSpeedV,scaleDesiredForceV,maximumForceV, magValue );
+					}
+					else
+					{
+						desiredVelocityV =  deltaTimeV * targetVel[j] - velocities[i];
 
-            j++;
-            if ( j == targetSize ) j=0;
-        }
-    }
+						// delta time
+
+
+						desiredVelocityV *= scaleDesiredForceV;
+						truncVector ( desiredVelocityV,maximumForceV );
+					}
+
+					outputForce.append ( desiredVelocityV );
+				}
+				else
+				{
+					outputForce.append ( MVector::zero );
+				}
+
+				j++;
+				if ( j == targetSize ) j=0;
+			}
+		}
+	}
 
 
     // store last vector data
@@ -3255,9 +3284,9 @@ void bbSteeringDesire::sdSurfaceObstacleAvoidance ( MDataBlock& block,
 //steering desire: mesh following
 
 void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
-        const MVectorArray &positions,
-        const MVectorArray &velocities,
-        MVectorArray &outputForce )
+										const MVectorArray &positions,
+										const MVectorArray &velocities,
+										MVectorArray &outputForce )
 {
     MStatus stat;
     // points and velocities should have the same length. If not return.
