@@ -207,6 +207,7 @@ void bbSteeringDesire::connectionMadeCallbk ( MPlug &srcPlug, MPlug &destPlug, b
         MFnParticleSystem part ( particleShapeNode, &status );
 
 		bbUtils::createPPAttr ( part, "brainTargetIndex", "bti", 1);
+		bbUtils::createPPAttr ( part, "brainNeighborhood", "bnei", 1);
     }
 }
 
