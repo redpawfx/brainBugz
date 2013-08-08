@@ -151,35 +151,36 @@ private:
     void	getTargetsFromSurface ( MDataBlock& block , int posSize , std::vector<MPointArray> &target );
     void	getTargetsFromMesh    ( MDataBlock& block , int posSize , std::vector<MPointArray> &target );
 
-    void	sdSeekTargets 	  ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const MDoubleArray &targetIndex, const std::vector<MPointArray> &target, MVectorArray &outputForce );
-    void	sdMothSeekTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const MDoubleArray &targetIndex, const std::vector<MPointArray> &target, MVectorArray &outputForce );
-    void	sdArrivalTargets  ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, MVectorArray &outputForce );
-    void	sdPursuitTargets  ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, MVectorArray &outputForce );
-    void	sdShadowTargets   ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, const MTime &deltaTime, MVectorArray &outputForce );
+    void	sdSeekTargets 	  ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const MDoubleArray &targetIndex, const std::vector<MPointArray> &target, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdMothSeekTargets ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const MDoubleArray &targetIndex, const std::vector<MPointArray> &target, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdArrivalTargets  ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdPursuitTargets  ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdShadowTargets   ( MDataBlock& block, const MVectorArray &positions, const MVectorArray &velocities, const std::vector<MPointArray> &target, const MTime &deltaTime, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
 
 
-    void	sdNeighborAlignment ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void	sdNeighborCohesion ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void	sdNeighborSeparation ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void	sdNeighborUnalignedCollisionAvoidance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void	sdNeighborKeepDistance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void	sdNeighborOportunism ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
+    void	sdNeighborAlignment ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdNeighborCohesion ( MDataBlock& block, const MVectorArray& positions, const MVectorArray& velocities, const MDoubleArray& ppMagnitudeArray, MVectorArray& outputForce );
+    void	sdNeighborSeparation ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdNeighborUnalignedCollisionAvoidance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdNeighborKeepDistance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdNeighborOportunism ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
 
-    void	sdBugHeadDirection ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void	sdBugWander ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
+    void	sdBugHeadDirection ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdBugWander ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
 
     void	sdPursuit ( MDataBlock& block,
                         const MVectorArray &points,
                         const MVectorArray &velocities,
+						const MDoubleArray &ppMagnitudeArray,
                         MVectorArray &outputForce );
 
-    void	sdCurveFollowing ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
+    void	sdCurveFollowing ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
 
-    void	sdSurfaceFollowing ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void	sdSurfaceObstacleAvoidance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
+    void	sdSurfaceFollowing ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void	sdSurfaceObstacleAvoidance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
 
-    void	sdMeshFollowing ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
-    void    sdMeshObstacleAvoidance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, MVectorArray &outputForce );
+    void	sdMeshFollowing ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
+    void    sdMeshObstacleAvoidance ( MDataBlock& block, const MVectorArray &points, const MVectorArray &velocities, const MDoubleArray &ppMagnitudeArray, MVectorArray &outputForce );
 
     // methods to get attribute value of local attributes.
     //

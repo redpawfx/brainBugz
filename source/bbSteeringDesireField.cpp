@@ -34,6 +34,7 @@
 #include <maya/MFnEnumAttribute.h>
 #include <maya/MGlobal.h>
 #include <maya/MPlugArray.h>
+#include <maya/MFnArrayAttrsData.h>
 
 #include "bbSteeringDesireField.h"
 #include "MTools.h"
@@ -567,6 +568,31 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
     MDataHandle hDeltaTime = hCompond.child ( mDeltaTime );
     MTime deltaTime = hDeltaTime.asTime();
 
+	//// grab input particle values  from owner particles for direction
+
+    MArrayDataHandle mhInputPPData = block.inputArrayValue ( mInputPPData, &status );
+    McheckErr ( status,"error getting PP  owner data \n" );
+
+    // grab per-particle data for the object index we are processing
+    status = mhInputPPData.jumpToElement ( multiIndex );
+    McheckErr ( status,"error getting PP  owner values \n" );
+
+    MDataHandle hInputPPData = mhInputPPData.inputValue ( &status );
+    McheckErr ( status,"error getting PP  owner values2 \n" );
+
+    MObject dInputPPData = hInputPPData.data();
+    MFnArrayAttrsData inputPPArray ( dInputPPData );
+
+	const MString magString ( "magnitude" );
+    MFnArrayAttrsData::Type doubleType ( MFnArrayAttrsData::kDoubleArray );
+
+	bool arrayExist;
+    arrayExist = inputPPArray.checkArrayExist ( magString, doubleType, &status );
+    MDoubleArray magnitudeArray;
+    if ( arrayExist )
+    {
+        magnitudeArray = inputPPArray.getDoubleData ( magString, &status );
+    }
 
 	// get the targetIndex if we desire it
 	MDoubleArray targetIndex;
@@ -609,11 +635,11 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         // bug steering desires
 
     case SDS_BUG_DIRECTIONHEADING:
-        sdBugHeadDirection ( block, points, velocities,  forceArray );
+        sdBugHeadDirection ( block, points, velocities, magnitudeArray, forceArray );
         break;
 
     case SDS_BUG_WANDER:
-        sdBugWander ( block, points, velocities,  forceArray );
+        sdBugWander ( block, points, velocities, magnitudeArray,  forceArray );
         break;
 
         // target steering desires
@@ -635,7 +661,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
             getTargetsFromMesh ( block,pointsSize,targetArrayVec);
             break;
         }
-        sdSeekTargets ( block,points,velocities,targetIndex,targetArrayVec,forceArray );
+        sdSeekTargets ( block,points,velocities,targetIndex,targetArrayVec, magnitudeArray, forceArray );
     }
     break;
 
@@ -656,7 +682,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
             getTargetsFromMesh ( block,pointsSize,targetArrayVec );
 			break;
         }
-        sdMothSeekTargets ( block,points,velocities,targetIndex,targetArrayVec,forceArray );
+        sdMothSeekTargets ( block,points,velocities,targetIndex,targetArrayVec, magnitudeArray, forceArray );
     }
     break;
 
@@ -677,7 +703,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
             getTargetsFromMesh ( block,pointsSize,targetArrayVec );
             break;
         }
-        sdArrivalTargets ( block,points,velocities,targetArrayVec,forceArray );
+        sdArrivalTargets ( block,points,velocities,targetArrayVec, magnitudeArray, forceArray );
     }
     break;
 
@@ -698,7 +724,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
             getTargetsFromMesh ( block,pointsSize,targetArrayVec );
             break;
         }
-        sdPursuitTargets ( block,points,velocities,targetArrayVec,forceArray );
+        sdPursuitTargets ( block,points,velocities,targetArrayVec, magnitudeArray, forceArray );
     }
     break;
 
@@ -719,7 +745,7 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
             getTargetsFromMesh ( block,pointsSize,targetArrayVec );
             break;
         }
-        sdShadowTargets ( block,points,velocities,targetArrayVec,deltaTime,forceArray );
+        sdShadowTargets ( block,points,velocities,targetArrayVec,deltaTime, magnitudeArray, forceArray );
     }
     break;
 
@@ -730,13 +756,13 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         case TS_POINT:
             break;
         case TS_CURVE:
-            sdCurveFollowing ( block, points, velocities,  forceArray );
+            sdCurveFollowing ( block, points, velocities, magnitudeArray,  forceArray );
             break;
         case TS_SURFACE:
-            sdSurfaceFollowing ( block, points, velocities,  forceArray );
+            sdSurfaceFollowing ( block, points, velocities, magnitudeArray, forceArray );
             break;
         case TS_MESH:
-            sdMeshFollowing ( block, points, velocities,  forceArray );
+            sdMeshFollowing ( block, points, velocities, magnitudeArray,  forceArray );
             break;
         }
     }
@@ -751,10 +777,10 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
         case TS_CURVE:
             break;
         case TS_SURFACE:
-            sdSurfaceObstacleAvoidance ( block, points, velocities,  forceArray );
+            sdSurfaceObstacleAvoidance ( block, points, velocities, magnitudeArray, forceArray );
             break;
         case TS_MESH:
-            sdMeshObstacleAvoidance ( block, points, velocities,  forceArray );
+            sdMeshObstacleAvoidance ( block, points, velocities, magnitudeArray, forceArray );
             break;
         }
     }
@@ -763,27 +789,27 @@ MStatus bbSteeringDesire::compute ( const MPlug& plug, MDataBlock& block )
     // neighbor steering desires
 
     case SDS_NEIGHBOR_ALIGNMENT:
-        sdNeighborAlignment ( block, points, velocities,  forceArray );
+        sdNeighborAlignment ( block, points, velocities, magnitudeArray, forceArray );
         break;
 
     case SDS_NEIGHBOR_COHESION:
-        sdNeighborCohesion ( block, points, velocities,  forceArray );
+        sdNeighborCohesion ( block, points, velocities, magnitudeArray, forceArray );
         break;
 
     case SDS_NEIGHBOR_SEPARATION:
-        sdNeighborSeparation ( block, points, velocities,  forceArray );
+        sdNeighborSeparation ( block, points, velocities, magnitudeArray, forceArray );
         break;
 
     case SDS_NEIGHBOR_COLLISIONAVOIDANCE:
-        sdNeighborUnalignedCollisionAvoidance ( block, points, velocities,  forceArray );
+        sdNeighborUnalignedCollisionAvoidance ( block, points, velocities,  magnitudeArray, forceArray );
         break;
 
     case SDS_NEIGHBOR_KEEPDISTANCE:
-        sdNeighborKeepDistance ( block, points, velocities,  forceArray );
+        sdNeighborKeepDistance ( block, points, velocities, magnitudeArray, forceArray );
         break;
 
     case SDS_NEIGHBOR_OPORTUNISM:
-        sdNeighborOportunism ( block, points, velocities,  forceArray );
+        sdNeighborOportunism ( block, points, velocities, magnitudeArray, forceArray );
         break;
 
     default:
@@ -1852,6 +1878,7 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
                                        const MVectorArray &velocities,
 									   const MDoubleArray &targetIndex,
                                        const vector<MPointArray> &target,
+									   const MDoubleArray &ppMagnitudeArray,
                                        MVectorArray &outputForce )
 {
     MStatus stat;
@@ -1861,8 +1888,16 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
 
     outputForce.clear();
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     // get field of view parameter
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
+
     bool useSensorRangeV = useSensorRangeValue ( block );
     double sensorRangeV = sensorRangeValue ( block );
     bool useSensorAngleV = useSensorAngleValue ( block );
@@ -1894,6 +1929,10 @@ void bbSteeringDesire::sdSeekTargets ( MDataBlock& block,
 			int targetIndexV = 0;
 			for ( int i = 0; i < posSize; i ++ )
 			{
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
 				// if we're using  PP targetIndexes  we  set the index here
 				if (inputSelectionV == IS_PP && targetIndex.length() == posSize)
 				{
@@ -1942,6 +1981,7 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
         const MVectorArray &velocities,
 		const MDoubleArray &targetIndex,
         const vector<MPointArray> &target,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -1964,7 +2004,16 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
         scaleDesiredForceV = -1.0;
 
     //
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
+
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
 	short inputSelectionV = inputSelectionValue ( block );
@@ -1985,6 +2034,10 @@ void bbSteeringDesire::sdMothSeekTargets ( MDataBlock& block,
 			int targetIndexV = 0;
 			for ( int i =0 ; i < posSize; i ++ )
 			{
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
 				// if we're using  PP targetIndexes  we  set the index here
 				if (inputSelectionV == IS_PP && targetIndex.length() == posSize)
 				{
@@ -2031,6 +2084,7 @@ void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
         const vector<MPointArray> &target,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -2052,10 +2106,18 @@ void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
         scaleDesiredForceV = -1.0;
 
     //
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
     double stoppingRangeV = stoppingRangeValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+
+    double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
+
 
 	if (target.size() > 0)
 	{
@@ -2071,6 +2133,10 @@ void bbSteeringDesire::sdArrivalTargets ( MDataBlock& block,
 		{
 			for (int i =0; i < posSize; i ++ )
 			{
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
 				desiredVelocityV = target[0][j] - positions[i];
 
 				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
@@ -2096,6 +2162,7 @@ void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
         const vector<MPointArray> &target,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -2117,10 +2184,17 @@ void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
         scaleDesiredForceV = -1.0;
 
     //
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
     //double stoppingRangeV = stoppingRangeValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
 	// get last offset values
 	MVectorArray lastTargetPos;
@@ -2177,6 +2251,10 @@ void	bbSteeringDesire::sdPursuitTargets ( MDataBlock& block,
 		{
 			for ( int i = 0; i < posSize; i ++ )
 			{
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
 				desiredVelocityV = target[0][j] - positions[i];
 
 				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
@@ -2216,6 +2294,7 @@ void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
         const MVectorArray &velocities,
         const vector<MPointArray> &target,
         const MTime &deltaTime,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -2237,10 +2316,18 @@ void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
         scaleDesiredForceV = -1.0;
 
     //
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
     double shadowRangeV = shadowRangeValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
+
 
 	// get last offset values
 	MVectorArray lastTargetPos;
@@ -2300,6 +2387,10 @@ void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
 		{
 			for ( int i =0; i < posSize; i ++ )
 			{
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
 				desiredVelocityV = target[0][j] - positions[i];
 
 				if ( inFieldOfView ( desiredVelocityV, velocities[i], useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle ) )
@@ -2352,6 +2443,7 @@ void	bbSteeringDesire::sdShadowTargets ( MDataBlock& block,
 void bbSteeringDesire::sdBugHeadDirection ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     // points and velocities should have the same length. If not return.
@@ -2367,10 +2459,18 @@ void bbSteeringDesire::sdBugHeadDirection ( MDataBlock& block,
     if ( inverseDesiredSteeringForceValue ( block ) )
         scaleDesiredForceV = -1.0;
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
 	double minimumForceV = minimumForceValue( block );
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
+
 
     MVector directionV;
     directionValue ( block,directionV );
@@ -2381,6 +2481,10 @@ void bbSteeringDesire::sdBugHeadDirection ( MDataBlock& block,
 
     for ( int i=0; i < posSize; i++ )
     {
+		if (usePPMagnitude)
+		{
+			magValue = globalMag * ppMagnitudeArray[i];
+		}
         if ( directionV != MVector::zero && velocities[i].length() >=  minimumForceV )
         {
             desiredVelocityV = directionV;
@@ -2400,6 +2504,7 @@ void bbSteeringDesire::sdBugHeadDirection ( MDataBlock& block,
 void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     // points and velocities should have the same length. If not return.
@@ -2417,11 +2522,18 @@ void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
     bool useSensorRangeV = useSensorRangeValue ( block );
     double sensorRangeV = sensorRangeValue ( block );
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     bool useSensorAngleV = useSensorAngleValue ( block );
     double sensorAngle = sensorAngleValue ( block );
     double maximumForceV = maximumForceValue ( block );
 	double minimumForceV = minimumForceValue ( block );
-	double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
     MVector targetV;
 
@@ -2437,6 +2549,10 @@ void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
 
     for ( int i =0; i < posSize; i++ )
     {
+		if (usePPMagnitude)
+		{
+			magValue = globalMag * ppMagnitudeArray[i];
+		}
         getNearbyBugs ( positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList );
         nearbyBugIndexListSize= nearbyBugIndexList.length();
 
@@ -2479,6 +2595,7 @@ void bbSteeringDesire::sdNeighborAlignment ( MDataBlock& block,
 void bbSteeringDesire::sdNeighborCohesion ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     // points and velocities should have the same length. If not return.
@@ -2498,11 +2615,18 @@ void bbSteeringDesire::sdNeighborCohesion ( MDataBlock& block,
 
     bool useSensorAngleV = useSensorAngleValue ( block );
     double sensorAngle = sensorAngleValue ( block );
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
 
 //	double desiredSpeedV = desiredSpeedValue(block);
     double maximumForceV = maximumForceValue ( block );
 	double minimumForceV = minimumForceValue ( block );
-	double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
 
     MVector targetV;
@@ -2529,6 +2653,11 @@ void bbSteeringDesire::sdNeighborCohesion ( MDataBlock& block,
 
     for (int  i =0; i < posSize; i ++ )
     {
+		if (usePPMagnitude)
+		{
+			magValue = globalMag * ppMagnitudeArray[i];
+		}
+
         getNearbyBugs ( positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList );
         nearbyBugIndexListSize= nearbyBugIndexList.length();
 
@@ -2576,6 +2705,7 @@ void bbSteeringDesire::sdNeighborCohesion ( MDataBlock& block,
 void bbSteeringDesire::sdNeighborSeparation ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     // points and velocities should have the same length. If not return.
@@ -2645,6 +2775,7 @@ void bbSteeringDesire::sdNeighborSeparation ( MDataBlock& block,
 void bbSteeringDesire::sdNeighborUnalignedCollisionAvoidance ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     // points and velocities should have the same length. If not return.
@@ -2756,6 +2887,7 @@ void bbSteeringDesire::sdNeighborUnalignedCollisionAvoidance ( MDataBlock& block
 void bbSteeringDesire::sdNeighborKeepDistance ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     // points and velocities should have the same length. If not return.
@@ -2778,10 +2910,17 @@ void bbSteeringDesire::sdNeighborKeepDistance ( MDataBlock& block,
     double maximumForceV = maximumForceValue ( block );
     //double bugRadiusV = bugRadiusValue ( block );
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double toleranceV = toleranceValue ( block );
     double desiredSpeedV = desiredSpeedValue ( block );
     double distance = stoppingRangeValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
     // alignment steering
     int posSize = positions.length();
@@ -2803,6 +2942,10 @@ void bbSteeringDesire::sdNeighborKeepDistance ( MDataBlock& block,
 
     for ( int i =0; i < posSize; i ++ )
     {
+		if (usePPMagnitude)
+		{
+			magValue = globalMag * ppMagnitudeArray[i];
+		}
         getNearbyBugs ( positions,i,velocities[i],useSensorRangeV,useSensorAngleV,sensorRangeV,sensorAngle,nearbyBugIndexList );
         nearbyBugIndexListSize= nearbyBugIndexList.length();
 
@@ -2858,6 +3001,7 @@ void bbSteeringDesire::sdNeighborKeepDistance ( MDataBlock& block,
 void bbSteeringDesire::sdNeighborOportunism ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     /*	// points and velocities should have the same length. If not return.
@@ -2986,6 +3130,7 @@ void bbSteeringDesire::sdNeighborOportunism ( MDataBlock& block,
 void bbSteeringDesire::sdCurveFollowing ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -2999,12 +3144,19 @@ void bbSteeringDesire::sdCurveFollowing ( MDataBlock& block,
     if ( inverseDesiredSteeringForceValue ( block ) )
         scaleDesiredForceV = -1.0;
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
     double targetRadiusV = targetRadiusValue ( block );
     double toleranceV = toleranceValue ( block );
     double sensorRangeV = sensorRangeValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
     // get curve
 
@@ -3055,6 +3207,10 @@ void bbSteeringDesire::sdCurveFollowing ( MDataBlock& block,
 
             for ( int i=0; i < posSize; i ++ )
             {
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
                 unitVelocity = velocities[i];
                 unitVelocity.normalize();
 
@@ -3081,6 +3237,7 @@ void bbSteeringDesire::sdCurveFollowing ( MDataBlock& block,
 void bbSteeringDesire::sdSurfaceFollowing ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -3101,10 +3258,17 @@ void bbSteeringDesire::sdSurfaceFollowing ( MDataBlock& block,
     if ( inverseDesiredSteeringForceValue ( block ) )
         scaleDesiredForceV = -1.0;
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
     double targetRadiusV = targetRadiusValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
     // get surface
 
 
@@ -3152,6 +3316,10 @@ void bbSteeringDesire::sdSurfaceFollowing ( MDataBlock& block,
 
         for ( int i=0; i < posSize; i ++ )
         {
+			if (usePPMagnitude)
+			{
+				magValue = globalMag * ppMagnitudeArray[i];
+			}
             unitVelocity = velocities[i];
             unitVelocity.normalize();
 
@@ -3178,6 +3346,7 @@ void bbSteeringDesire::sdSurfaceFollowing ( MDataBlock& block,
 void bbSteeringDesire::sdSurfaceObstacleAvoidance ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -3204,9 +3373,17 @@ void bbSteeringDesire::sdSurfaceObstacleAvoidance ( MDataBlock& block,
 
     int posSize = positions.length();
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
+
     MVector desiredVelocityV ( 0.0,0.0,0.0 );
     MVector unitVelocity;
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+	double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
     // get surfaces
 
@@ -3277,6 +3454,10 @@ void bbSteeringDesire::sdSurfaceObstacleAvoidance ( MDataBlock& block,
         // steer
         for ( int e=0; e < posSize; e++ )
         {
+			if (usePPMagnitude)
+			{
+				magValue = globalMag * ppMagnitudeArray[e];
+			}
             if ( shortestDistance[e] <= probeLengthV )
             {
                 inputSurfaceAD.jumpToElement ( shortestSurface[e] );
@@ -3331,6 +3512,10 @@ void bbSteeringDesire::sdSurfaceObstacleAvoidance ( MDataBlock& block,
 
             for ( int i=0; i < posSize; i ++ )
             {
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
                 // intersection test
                 if ( surfaceFn.intersect ( positions[i],velocities[i],uIP,vIP,intersectPoint,toleranceV,MSpace::kObject,true,&distance ) )
                 {
@@ -3371,6 +3556,7 @@ void bbSteeringDesire::sdSurfaceObstacleAvoidance ( MDataBlock& block,
 void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
 										const MVectorArray &positions,
 										const MVectorArray &velocities,
+										 const MDoubleArray &ppMagnitudeArray,
 										MVectorArray &outputForce )
 {
     MStatus stat;
@@ -3381,6 +3567,11 @@ void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
 
     outputForce.clear();
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
     //bool useSensorRangeV = useSensorRangeValue ( block );
     double sensorRangeV = sensorRangeValue ( block );
 
@@ -3394,7 +3585,8 @@ void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
     double targetRadiusV = targetRadiusValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+    double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
     // get mesh
 
@@ -3444,6 +3636,11 @@ void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
 
         for ( int i=0; i < posSize; i ++ )
         {
+			if (usePPMagnitude)
+			{
+				magValue = globalMag * ppMagnitudeArray[i];
+			}
+
             unitVelocity = velocities[i];
             unitVelocity.normalize();
 
@@ -3471,6 +3668,7 @@ void bbSteeringDesire::sdMeshFollowing ( MDataBlock& block,
 void bbSteeringDesire::sdMeshObstacleAvoidance ( MDataBlock& block,
         const MVectorArray &positions,
         const MVectorArray &velocities,
+		const MDoubleArray &ppMagnitudeArray,
         MVectorArray &outputForce )
 {
     MStatus stat;
@@ -3489,9 +3687,16 @@ void bbSteeringDesire::sdMeshObstacleAvoidance ( MDataBlock& block,
     double scaleDesiredForceV = 1.0;
     if ( inverseDesiredSteeringForceValue ( block ) ) scaleDesiredForceV = -1.0;
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double desiredSpeedV = desiredSpeedValue ( block );
     double maximumForceV = maximumForceValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+    double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
 
     double toleranceV = toleranceValue ( block );
 
@@ -3591,6 +3796,10 @@ void bbSteeringDesire::sdMeshObstacleAvoidance ( MDataBlock& block,
 
         for ( int e=0; e < posSize; e++ )
         {
+			if (usePPMagnitude)
+			{
+				magValue = globalMag * ppMagnitudeArray[e];
+			}
             if ( shortestDistance[e] <= probeLengthV )
             {
                 inputMeshAD.jumpToElement ( shortestMesh[e] );
@@ -3635,6 +3844,10 @@ void bbSteeringDesire::sdMeshObstacleAvoidance ( MDataBlock& block,
 
             for ( int i=0; i < posSize; i ++ )
             {
+				if (usePPMagnitude)
+				{
+					magValue = globalMag * ppMagnitudeArray[i];
+				}
                 // intersection test
                 if ( meshFn.intersect ( positions[i],velocities[i],intersectionPoint,toleranceV,MSpace::kObject,&polyID ) )
                 {
@@ -3668,6 +3881,7 @@ void bbSteeringDesire::sdMeshObstacleAvoidance ( MDataBlock& block,
 void bbSteeringDesire::sdBugWander ( MDataBlock& block,
                                      const MVectorArray &positions,
                                      const MVectorArray &velocities,
+									 const MDoubleArray &ppMagnitudeArray,
                                      MVectorArray &outputForce )
 {
     MStatus stat;
@@ -3683,9 +3897,17 @@ void bbSteeringDesire::sdBugWander ( MDataBlock& block,
     if ( inverseDesiredSteeringForceValue ( block ) )
         scaleDesiredForceV = -1.0;
 
+	bool usePPMagnitude = false;
+	if (ppMagnitudeArray.length() == positions.length())
+	{
+		usePPMagnitude = true;
+	}
+
     double maximumForceV = maximumForceValue ( block );
     //double bugRadiusV = bugRadiusValue ( block );
-    double magValue	= block.inputValue ( mMagnitude ).asDouble();
+    double globalMag = block.inputValue ( mMagnitude ).asDouble();
+	double magValue = globalMag;
+
 	double minimumForceV = minimumForceValue( block );
 
     bool useRandomV = useRandomValue ( block );
@@ -3790,6 +4012,10 @@ void bbSteeringDesire::sdBugWander ( MDataBlock& block,
 
         for ( int i=0; i < posSize; i ++ )
         {
+			if (usePPMagnitude)
+			{
+				magValue = globalMag * ppMagnitudeArray[i];
+			}
             // generate randomOffsetV
             for ( int r=0; r<3; r++ )
             {
@@ -3879,6 +4105,10 @@ void bbSteeringDesire::sdBugWander ( MDataBlock& block,
     {
         for ( int i=0; i < posSize; i ++ )
         {
+			if (usePPMagnitude)
+			{
+				magValue = globalMag * ppMagnitudeArray[i];
+			}
 			if (velocities[i].length() > minimumForceV)
 			{
 				desiredVelocityV = positions[i] + wSphereOffsetV;
